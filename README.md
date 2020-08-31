@@ -16,3 +16,5 @@
  - To evaluate human factors issues through quantitative behavior data
  
 ## Statistics Analysis
+ - Two way repeated measurement ANOVA
+ 
