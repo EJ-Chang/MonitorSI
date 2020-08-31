@@ -10,4 +10,9 @@
 ![MIT License](https://img.shields.io/github/license/EJ-Chang/MonitorSI?color=A31F34&style=for-the-badge)
 
 
-螢幕軟硬體整合
+# Monitor - System integration
+
+## Research Objectives
+ - To evaluate human factors issues through quantitative behavior data
+ 
+## Statistics Analysis
