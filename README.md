@@ -1,6 +1,5 @@
 # MonitorSI
 
-
 ![Made with Python](https://img.shields.io/badge/made%20with-python-yellow?style=for-the-badge&logo=python&labelColor=blue&logoColor=white)
 ![Built with Arduino](https://img.shields.io/badge/built%20with-Arduino-00979D?style=for-the-badge&logo=arduino&labelColor=005457)
 
@@ -10,11 +9,16 @@
 ![MIT License](https://img.shields.io/github/license/EJ-Chang/MonitorSI?color=A31F34&style=for-the-badge)
 
 
-# Monitor - System integration
-
 ## Research Objectives
  - To evaluate human factors issues through quantitative behavior data
  
-## Statistics Analysis
+## Apparatus
+ - PA27 Monitor
+ - Arduino Uno Rev 3 board
+ - 5 direction button
+ - Rotary button
+ - 3D printed cover/cap
+ 
+## Statistical Analysis
  - Two way repeated measurement ANOVA
  
