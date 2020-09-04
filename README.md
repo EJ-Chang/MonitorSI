@@ -15,6 +15,13 @@
 ## Research Objectives
  - To evaluate human factors issues through quantitative behavior data
  
-## Statistics Analysis
+## Apparatus
+ - PA27 Monitor
+ - Arduino Uno Rev 3 board
+ - 5 direction button
+ - Rotary button
+ - 3D printed cover/cap
+ 
+## Statistical Analysis
  - Two way repeated measurement ANOVA
  
