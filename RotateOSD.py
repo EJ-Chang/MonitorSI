@@ -1,0 +1,114 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 31 2020
+
+Written by EJ_Chang
+"""
+
+import os, random, time 
+import pyfirmata # Communicate with Arduino
+from psychopy import visual, event, core, monitors 
+
+# Import setting dictionaries
+from Solarized import * # Solarized color palette
+from GUI_Material import * # Prototype OSD GUI
+
+
+# Prepare our Arduino board
+board = pyfirmata.Arduino('/dev/cu.usbmodem14201')
+
+it = pyfirmata.util.Iterator(board)
+it.start()
+
+# Name and assign input pins
+sig_input_3 = board.get_pin('d:3:i')
+sig_input_5 = board.get_pin('d:5:i')
+sig_input_7 = board.get_pin('d:7:i')
+
+# Initial status of input pins
+pre_stat = []
+
+'''
+
+Create prototype OSD interface
+
+'''
+# Make screen profile ----
+widthPix = 2560 # screen width in px
+heightPix = 1440 # screen height in px
+monitorwidth = 60 # monitor width in cm
+viewdist = 60 # viewing distance in cm
+monitorname = 'ProArt27'
+scrn = 0 # 0 to use main screen, 1 to use external screen
+mon = monitors.Monitor(monitorname, width = monitorwidth, distance = viewdist)
+mon.setSizePix((widthPix, heightPix))
+mon.save()
+
+# Preparing Window ----
+
+my_win = visual.Window(size = (880, 440), pos = (880,1040), 
+                       color = SOLARIZED['base03'], colorSpace = 'rgb255', 
+                       monitor = mon, units = 'pix', screen = 1)
+
+# my_win = visual.Window(size = (2560, 1440), pos = (0,0), 
+#                        color = SOLARIZED['base03'], colorSpace = 'rgb255', 
+#                        monitor = mon, units = 'pix', 
+#                        screen = 0, fullscr = 1)
+
+
+# Exp starts! =======
+initialTime = core.getTime()
+currentTime = core.getTime()
+iCol = 1
+iRow = 1
+
+while currentTime - initialTime < 10: # Wait 10 sec
+    # Time
+    currentTime = core.getTime()
+
+    # Background OSD
+    for image in range(5):
+        img = visual.ImageStim(my_win,
+            image = imageLUT[image]['path'],
+            pos = imageLUT[image]['position'])
+        img.draw()
+
+    # OSD strings
+    for image in range(4):
+        img = visual.ImageStim(my_win,
+            image = strLUT[image]['path'],
+            pos = strLUT[image]['position'])
+        img.draw()
+
+    # Indicator
+    indicator = visual.Rect(my_win, 
+        width = indicatorLUT[iCol]['width'], 
+        height = indicatorLUT[iCol]['height'], 
+        fillColor = SOLARIZED['grey01'], fillColorSpace='rgb255', 
+        lineColor = SOLARIZED['grey01'], lineColorSpace ='rgb255', 
+        pos= indicatorLUT[iCol]['position'][iRow], opacity = 0.5)
+
+    indicator.draw()
+
+
+    my_win.flip()
+
+    # Collect input within a while loop
+    input_c = int(sig_input_3.read()) # click
+    input_x = int(sig_input_5.read()) # X
+    input_y = int(sig_input_7.read()) # Y
+
+
+    if [input_c, input_x, input_y] != pre_stat:
+        print(input_c, input_x, input_y)
+        
+        if [input_c, input_x, input_y] == [1, 1, 1]:
+            iCol += 1
+            if iCol >= 4:
+                break
+
+    pre_stat = [input_c, input_x, input_y]
+
+
+# Close the window
+my_win.close()
