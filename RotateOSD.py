@@ -26,7 +26,7 @@ sig_input_5 = board.get_pin('d:5:i')
 sig_input_7 = board.get_pin('d:7:i')
 
 # Initial status of input pins
-pre_stat = []
+pre_stat = [0, 0, 0]
 
 '''
 
@@ -93,21 +93,37 @@ while currentTime - initialTime < 10: # Wait 10 sec
 
     my_win.flip()
 
+
     # Collect input within a while loop
-    input_c = int(sig_input_3.read()) # click
-    input_x = int(sig_input_5.read()) # X
-    input_y = int(sig_input_7.read()) # Y
+    input_c = sig_input_3.read() # click
+    input_x = sig_input_5.read() # X
+    input_y = sig_input_7.read() # Y
 
 
     if [input_c, input_x, input_y] != pre_stat:
-        print(input_c, input_x, input_y)
+        # print(input_c, input_x, input_y)
+        # print('---')
         
         if [input_c, input_x, input_y] == [1, 1, 1]:
-            iCol += 1
-            if iCol >= 4:
-                break
+            print('---')
+            if pre_stat[1] == 0 and pre_stat[2] == 0:
+                print('pass', iCol)
+                pass
+            elif pre_stat[1] == 1 and pre_stat[2] == 0: # Counter-clockwise
+                iCol -= 1
+                if iCol < 0:
+                    iCol = 0
+                print('counter-clockwise', iCol)
+
+            elif pre_stat[1] == 0 and pre_stat[2] == 1: # Clockwise
+                iCol += 1
+                if iCol >= 3:
+                    iCol = 3
+                print('clockwise', iCol)
+
 
     pre_stat = [input_c, input_x, input_y]
+
 
 
 # Close the window
