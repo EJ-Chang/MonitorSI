@@ -59,10 +59,10 @@ my_win = visual.Window(size = (880, 440), pos = (880,1040),
 # Exp starts! =======
 initialTime = core.getTime()
 currentTime = core.getTime()
-iCol = 1
-iRow = 1
+iCol = 0
+iRow = 0
 
-while currentTime - initialTime < 10: # Wait 10 sec
+while currentTime - initialTime < 30: # Wait 10 sec
     # Time
     currentTime = core.getTime()
 
@@ -84,45 +84,59 @@ while currentTime - initialTime < 10: # Wait 10 sec
     indicator = visual.Rect(my_win, 
         width = indicatorLUT[iCol]['width'], 
         height = indicatorLUT[iCol]['height'], 
-        fillColor = SOLARIZED['grey01'], fillColorSpace='rgb255', 
-        lineColor = SOLARIZED['grey01'], lineColorSpace ='rgb255', 
-        pos= indicatorLUT[iCol]['position'][iRow], opacity = 0.5)
+        fillColor = SOLARIZED['yellow'], fillColorSpace='rgb255', 
+        lineColor = SOLARIZED['yellow'], lineColorSpace ='rgb255', 
+        pos= indicatorLUT[iCol]['position'][iRow], opacity = 0.8)
 
     indicator.draw()
 
 
     my_win.flip()
+    flipTime = core.getTime()
+
+    triggerWait = 1
+
+    while triggerWait == 1:
+        # Collect input within a while loop
+        input_c = sig_input_3.read() # click
+        input_x = sig_input_5.read() # X
+        input_y = sig_input_7.read() # Y
 
 
-    # Collect input within a while loop
-    input_c = sig_input_3.read() # click
-    input_x = sig_input_5.read() # X
-    input_y = sig_input_7.read() # Y
+        if [input_c, input_x, input_y] != pre_stat:
+            # print(input_c, input_x, input_y)
+            # print('---')
+            
+            if [input_c, input_x, input_y] == [1, 1, 1]:
+                print('---')
+
+                if pre_stat[0] == 0:
+                    iRow += 1
+                    if iRow >=4: 
+                        iRow == 4
+                    print('next', iRow)
+
+                    triggerWait = 0
+                elif pre_stat[1] == 0 and pre_stat[2] == 0:
+                    print('pass', iCol)
+                    pass
+                elif pre_stat[1] == 1 and pre_stat[2] == 0: # Counter-clockwise
+                    iCol -= 1
+                    if iCol < 0:
+                        iCol = 0
+                    print('counter-clockwise', iCol)
+                    triggerWait = 0
+
+                elif pre_stat[1] == 0 and pre_stat[2] == 1: # Clockwise
+                    iCol += 1
+                    if iCol >= 3:
+                        iCol = 3
+                    print('clockwise', iCol)
+                    triggerWait = 0
 
 
-    if [input_c, input_x, input_y] != pre_stat:
-        # print(input_c, input_x, input_y)
-        # print('---')
-        
-        if [input_c, input_x, input_y] == [1, 1, 1]:
-            print('---')
-            if pre_stat[1] == 0 and pre_stat[2] == 0:
-                print('pass', iCol)
-                pass
-            elif pre_stat[1] == 1 and pre_stat[2] == 0: # Counter-clockwise
-                iCol -= 1
-                if iCol < 0:
-                    iCol = 0
-                print('counter-clockwise', iCol)
 
-            elif pre_stat[1] == 0 and pre_stat[2] == 1: # Clockwise
-                iCol += 1
-                if iCol >= 3:
-                    iCol = 3
-                print('clockwise', iCol)
-
-
-    pre_stat = [input_c, input_x, input_y]
+        pre_stat = [input_c, input_x, input_y]
 
 
 
