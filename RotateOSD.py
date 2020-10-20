@@ -21,12 +21,21 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Name and assign input pins
-sig_input_3 = board.get_pin('d:3:i')
-sig_input_5 = board.get_pin('d:5:i')
-sig_input_7 = board.get_pin('d:7:i')
+sig_input_1 = board.get_pin('d:3:i')
+sig_input_3 = board.get_pin('d:5:i')
+sig_input_5 = board.get_pin('d:7:i')
 
 # Initial status of input pins
-pre_stat = [0, 0, 0]
+
+# Set initial values
+pre_stat = []
+log = []
+resp_status = 0
+trigger = []
+pre_resp_status = []
+# Start !
+print('start!')
+
 
 '''
 
@@ -46,10 +55,14 @@ mon.save()
 
 # Preparing Window ----
 
-my_win = visual.Window(size = (880, 440), pos = (880,1040), 
-                       color = SOLARIZED['base03'], colorSpace = 'rgb255', 
-                       monitor = mon, units = 'pix', screen = 1)
+# my_win = visual.Window(size = (880, 440), pos = (880,800), 
+#                        color = SOLARIZED['base03'], colorSpace = 'rgb255', 
+#                        monitor = mon, units = 'pix', screen = 1)
 
+my_win = visual.Window(size = (2560, 1440), pos = (0,0), 
+                       color = SOLARIZED['base03'], colorSpace = 'rgb255', 
+                       monitor = mon, units = 'pix', 
+                       screen = 0, fullscr = 1)
 # my_win = visual.Window(size = (2560, 1440), pos = (0,0), 
 #                        color = SOLARIZED['base03'], colorSpace = 'rgb255', 
 #                        monitor = mon, units = 'pix', 
@@ -59,10 +72,11 @@ my_win = visual.Window(size = (880, 440), pos = (880,1040),
 # Exp starts! =======
 initialTime = core.getTime()
 currentTime = core.getTime()
+clickTime = core.getTime()
 iCol = 0
 iRow = 0
 
-while currentTime - initialTime < 30: # Wait 10 sec
+while currentTime - initialTime < 20: # Wait 10 sec
     # Time
     currentTime = core.getTime()
 
@@ -94,43 +108,83 @@ while currentTime - initialTime < 30: # Wait 10 sec
     my_win.flip()
     flipTime = core.getTime()
 
-    triggerWait = 1
+    trigger_wait = 1
 
-    while triggerWait == 1:
-        # Collect input within a while loop
-        input_c = sig_input_3.read() # click
-        input_x = sig_input_5.read() # X
-        input_y = sig_input_7.read() # Y
+    while trigger_wait == 1:
+        # Read ports
+        sw_1 = sig_input_1.read()
+        sw_3 = sig_input_3.read()
+        sw_5 = sig_input_5.read()
+
+        # Click status info
+        click_stat = sw_1
+
+        if click_stat == False and pre_click == True:
+            clickTime = core.getTime()
+            if clickTime - pre_clickTime > 0.1:
+                iCol += 1
+                print('Click')
+                if iCol > 3:
+                    iCol = 0
+
+            trigger_wait = 0
+        else:
+            pass
+
+        pre_click = sw_1
+        pre_clickTime = clickTime
+            # core.quit()
 
 
-        if [input_c, input_x, input_y] != pre_stat:
+        # Rotation position info
+        rotation_pos = [sw_3, sw_5] # rotation x,y
 
-            if [input_c, input_x, input_y] == [1, 1, 1]:
-                print('---')
-
-                if pre_stat[0] == 0:
-                    iCol += 1
-                    if iCol >= 3: iCol == 3
-                    print('next', iCol)
-
-                    triggerWait = 0
-                elif pre_stat[1] == 0 and pre_stat[2] == 0:
-                    print('pass', iRow)
-                    pass
-                elif pre_stat[1] == 1 and pre_stat[2] == 0: # Counter-clockwise
-                    iRow -= 1
-                    if iRow < 0: iRow = 0
-                    print('counter-clockwise', iRow)
-                    triggerWait = 0
-
-                elif pre_stat[1] == 0 and pre_stat[2] == 1: # Clockwise
+        # Clockwise / counter-clockwise
+        if rotation_pos == [True, True]:
+            resp_status = 1
+            
+            if len(trigger) >= 2:
+                if trigger[-1] - trigger[0] < 0:
+                    print('Clockwise >>>')
                     iRow += 1
-                    if iRow >= 4: iRow = 4
-                    print('clockwise', iRow)
-                    triggerWait = 0
+                    if iRow >= 4:
+                        iRow = 4
+                    # log.append('Clockwise >>>')
+                    trigger_wait = 0
+                elif trigger[-1] - trigger[0] > 0:
+                    print('<<< Counter-Clockwise')
+                    iRow -= 1
+                    if iRow <= 0:
+                        iRow = 0
+                    trigger_wait = 0
+                    # log.append('<<< Counter-Clockwise')
+                else:
+                    pass
+            else:
+                pass        
 
-        pre_stat = [input_c, input_x, input_y]
+            trigger = []
 
+        elif rotation_pos == [False, True]:
+            resp_status = 2
+            if resp_status != pre_resp_status:
+                trigger.append(resp_status)
+
+        elif rotation_pos == [False, False]:
+            resp_status = 3
+            if resp_status != pre_resp_status:
+                trigger.append(resp_status)
+
+        elif rotation_pos == [True, False]:
+            resp_status = 4
+            if resp_status != pre_resp_status:
+                trigger.append(resp_status)
+        else:
+            pass
+
+
+        pre_stat = [sw_3, sw_5]
+        pre_resp_status = resp_status
 
 
 # Close the window
