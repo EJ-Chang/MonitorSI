@@ -104,37 +104,30 @@ while currentTime - initialTime < 30: # Wait 10 sec
 
 
         if [input_c, input_x, input_y] != pre_stat:
-            # print(input_c, input_x, input_y)
-            # print('---')
-            
+
             if [input_c, input_x, input_y] == [1, 1, 1]:
                 print('---')
 
                 if pre_stat[0] == 0:
-                    iRow += 1
-                    if iRow >=4: 
-                        iRow == 4
-                    print('next', iRow)
+                    iCol += 1
+                    if iCol >= 3: iCol == 3
+                    print('next', iCol)
 
                     triggerWait = 0
                 elif pre_stat[1] == 0 and pre_stat[2] == 0:
-                    print('pass', iCol)
+                    print('pass', iRow)
                     pass
                 elif pre_stat[1] == 1 and pre_stat[2] == 0: # Counter-clockwise
-                    iCol -= 1
-                    if iCol < 0:
-                        iCol = 0
-                    print('counter-clockwise', iCol)
+                    iRow -= 1
+                    if iRow < 0: iRow = 0
+                    print('counter-clockwise', iRow)
                     triggerWait = 0
 
                 elif pre_stat[1] == 0 and pre_stat[2] == 1: # Clockwise
-                    iCol += 1
-                    if iCol >= 3:
-                        iCol = 3
-                    print('clockwise', iCol)
+                    iRow += 1
+                    if iRow >= 4: iRow = 4
+                    print('clockwise', iRow)
                     triggerWait = 0
-
-
 
         pre_stat = [input_c, input_x, input_y]
 
