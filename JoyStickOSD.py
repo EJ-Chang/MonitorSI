@@ -21,18 +21,19 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Name and assign input pins
-sig_input_1 = board.get_pin('d:5:i')
-sig_input_3 = board.get_pin('d:6:i')
-sig_input_5 = board.get_pin('d:7:i')
+sig_input_x = board.get_pin('a:1:i') # x
+sig_input_y = board.get_pin('a:2:i') # y
+sig_input_c = board.get_pin('d:3:i') # click
+ 
 
 # Initial status of input pins
 
 # Set initial values
-pre_stat = []
-log = []
-resp_status = 0
-trigger = []
-pre_resp_status = []
+pre_stat = [0, 0]
+sw_x = 0
+sw_y = 0
+trigger = 'None'
+pre_trigger = 'None'
 # Start !
 print('start!')
 
@@ -108,83 +109,52 @@ while currentTime - initialTime < 20: # Wait 10 sec
     my_win.flip()
     flipTime = core.getTime()
 
-    trigger_wait = 1
+    # Response
+    sw_x = sig_input_x.read() # x
+    sw_y = sig_input_y.read() # y
+    sw_c = sig_input_c.read() # click
 
-    while trigger_wait == 1:
-        # Read ports
-        sw_1 = sig_input_1.read()
-        sw_3 = sig_input_3.read()
-        sw_5 = sig_input_5.read()
+    # print(sw_x, sw_y, sw_c)
 
-        # Click status info
-        click_stat = sw_1
+    # Breaking point
+    if sw_c == False:
+        trigger = 'Click'
+    elif sw_c == True :
+        D1 = sw_y - sw_x
+        D2 = sw_y + sw_x - 1
+        O1 = (sw_x-0.5) ** 2 + (sw_y-0.5) ** 2 - 0.04 # r = 0.2
 
-        if click_stat == False and pre_click == True:
-            clickTime = core.getTime()
-            if clickTime - pre_clickTime > 0.1:
-                iCol += 1
-                print('Click')
-                if iCol > 3:
+        if O1 >= 0:
+            if D1 > 0 and D2 > 0:
+                trigger = 'Up'
+                iRow -= 1
+                if iRow <= 0:
+                    iRow = 0
+            elif D1 < 0 and D2 > 0:
+                trigger = 'Left'
+                iCol -= 1
+                if iCol <= 0:
                     iCol = 0
-
-            trigger_wait = 0
+            elif D1 < 0 and D2 < 0:
+                trigger = 'Down'
+                iRow += 1
+                if iRow >= 4:
+                    iRow = 4
+            elif D1 > 0 and D2 < 0:
+                trigger = 'Right'
+                iCol += 1
+                if iCol >= 3:
+                    iCol = 3
         else:
-            pass
-
-        pre_click = sw_1
-        pre_clickTime = clickTime
-            # core.quit()
+            trigger = 'None'
 
 
-        # Rotation position info
-        rotation_pos = [sw_3, sw_5] # rotation x,y
+    if trigger != pre_trigger:
+        print(trigger)
+    else:
+        pass
 
-        # Clockwise / counter-clockwise
-        if rotation_pos == [True, True]:
-            resp_status = 1
-            
-            if len(trigger) >= 2:
-                if trigger[-1] - trigger[0] < 0:
-                    print('Clockwise >>>')
-                    iRow += 1
-                    if iRow >= 4:
-                        iRow = 4
-                    # log.append('Clockwise >>>')
-                    trigger_wait = 0
-                elif trigger[-1] - trigger[0] > 0:
-                    print('<<< Counter-Clockwise')
-                    iRow -= 1
-                    if iRow <= 0:
-                        iRow = 0
-                    trigger_wait = 0
-                    # log.append('<<< Counter-Clockwise')
-                else:
-                    pass
-            else:
-                pass        
-
-            trigger = []
-
-        elif rotation_pos == [False, True]:
-            resp_status = 2
-            if resp_status != pre_resp_status:
-                trigger.append(resp_status)
-
-        elif rotation_pos == [False, False]:
-            resp_status = 3
-            if resp_status != pre_resp_status:
-                trigger.append(resp_status)
-
-        elif rotation_pos == [True, False]:
-            resp_status = 4
-            if resp_status != pre_resp_status:
-                trigger.append(resp_status)
-        else:
-            pass
-
-
-        pre_stat = [sw_3, sw_5]
-        pre_resp_status = resp_status
+    pre_trigger = trigger
 
 
 # Close the window

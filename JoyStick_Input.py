@@ -15,11 +15,9 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 
-sig_input_1 = board.get_pin('a:5:i') # y
-# sig_input_2 = board.get_pin('d:4:i')
-sig_input_3 = board.get_pin('a:3:i') # x
-# sig_input_4 = board.get_pin('d:6:i')
-sig_input_5 = board.get_pin('d:7:i') # click
+sig_input_x = board.get_pin('a:1:i') # x
+sig_input_y = board.get_pin('a:2:i') # y
+sig_input_c = board.get_pin('d:3:i') # click
  
 print('start!')
 
@@ -27,13 +25,53 @@ print('start!')
 initialTime = core.getTime()
 currentTime = core.getTime()
 
+log_x = []
+log_y = []
+pre_stat = [0, 0]
+sw_x = 0
+sw_y = 0
+trigger = 'None'
+pre_trigger = 'None'
+# L1 = y - x
+# L2 = y + x - 1
+# O1 = x^2 + y^2 - r^2
+
+
 # while True:
 while currentTime - initialTime < 10: # Wait 10 sec
     
     currentTime = core.getTime()
 
-    sw_1 = sig_input_1.read()
-    sw_3 = sig_input_3.read()
-    sw_5 = sig_input_5.read()
+    sw_x = sig_input_x.read() # x
+    sw_y = sig_input_y.read() # y
+    sw_c = sig_input_c.read() # click
 
-    print(sw_1, sw_3, sw_5)
+    # print(sw_x, sw_y, sw_c)
+
+    # Breaking point
+    if sw_c == False:
+        trigger = 'Click'
+    elif sw_c == True :
+        D1 = sw_y - sw_x
+        D2 = sw_y + sw_x - 1
+        O1 = (sw_x-0.5) ** 2 + (sw_y-0.5) ** 2 - 0.04 # r = 0.2
+
+        if O1 >= 0:
+            if D1 > 0 and D2 > 0:
+                trigger = 'Up'
+            elif D1 < 0 and D2 > 0:
+                trigger = 'Left'
+            elif D1 < 0 and D2 < 0:
+                trigger = 'Down'
+            elif D1 > 0 and D2 < 0:
+                trigger = 'Right'
+        else:
+            trigger = 'None'
+
+
+    if trigger != pre_trigger:
+        print(trigger)
+    else:
+        pass
+
+    pre_trigger = trigger
