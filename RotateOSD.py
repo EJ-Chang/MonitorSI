@@ -24,6 +24,7 @@ it.start()
 sig_input_1 = board.get_pin('d:5:i')
 sig_input_3 = board.get_pin('d:6:i')
 sig_input_5 = board.get_pin('d:7:i')
+sig_input_7 = board.get_pin('d:10:i') # Omron
 
 # Initial status of input pins
 
@@ -33,6 +34,8 @@ log = []
 resp_status = 0
 trigger = []
 pre_resp_status = []
+pre_click = []
+pre_button = []
 # Start !
 print('start!')
 
@@ -73,6 +76,7 @@ my_win = visual.Window(size = (880, 440), pos = (880,800),
 initialTime = core.getTime()
 currentTime = core.getTime()
 clickTime = core.getTime()
+buttonTime = core.getTime()
 iCol = 0
 iRow = 0
 
@@ -115,6 +119,7 @@ while currentTime - initialTime < 20: # Wait 10 sec
         sw_1 = sig_input_1.read()
         sw_3 = sig_input_3.read()
         sw_5 = sig_input_5.read()
+        sw_7 = sig_input_7.read()
 
         # Click status info
         click_stat = sw_1
@@ -134,6 +139,23 @@ while currentTime - initialTime < 20: # Wait 10 sec
         pre_click = sw_1
         pre_clickTime = clickTime
             # core.quit()
+
+        # Button(back key) status info
+        button_stat = sw_7
+
+        if button_stat == False and pre_button == True:
+            buttonTime = core.getTime()
+            if buttonTime - pre_buttonTime > 0.1:
+                iCol -= 1
+                print('Back')
+                if iCol <= 0:
+                    iCol = 0
+            trigger_wait = 0
+        else:
+            pass
+
+        pre_button = sw_7
+        pre_buttonTime = buttonTime
 
 
         # Rotation position info

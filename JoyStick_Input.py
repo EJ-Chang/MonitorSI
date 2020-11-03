@@ -17,7 +17,7 @@ it.start()
 
 sig_input_x = board.get_pin('a:1:i') # x
 sig_input_y = board.get_pin('a:2:i') # y
-sig_input_c = board.get_pin('d:3:i') # click
+sig_input_c = board.get_pin('d:4:i') # click
  
 print('start!')
 
@@ -47,6 +47,7 @@ while currentTime - initialTime < 10: # Wait 10 sec
     sw_c = sig_input_c.read() # click
 
     # print(sw_x, sw_y, sw_c)
+
 
     # Breaking point
     if sw_c == False:
