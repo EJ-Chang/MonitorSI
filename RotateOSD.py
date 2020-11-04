@@ -79,8 +79,10 @@ clickTime = core.getTime()
 buttonTime = core.getTime()
 iCol = 0
 iRow = 0
+pre_buttonTime = buttonTime
+pre_clickTime = clickTime
 
-while currentTime - initialTime < 20: # Wait 10 sec
+while currentTime - initialTime < 180: # Wait 10 sec
     # Time
     currentTime = core.getTime()
 
@@ -133,12 +135,12 @@ while currentTime - initialTime < 20: # Wait 10 sec
                     iCol = 0
 
             trigger_wait = 0
+            pre_clickTime = clickTime
         else:
             pass
 
         pre_click = sw_1
-        pre_clickTime = clickTime
-            # core.quit()
+ 
 
         # Button(back key) status info
         button_stat = sw_7
@@ -151,11 +153,11 @@ while currentTime - initialTime < 20: # Wait 10 sec
                 if iCol <= 0:
                     iCol = 0
             trigger_wait = 0
+            pre_buttonTime = buttonTime
         else:
             pass
 
         pre_button = sw_7
-        pre_buttonTime = buttonTime
 
 
         # Rotation position info
