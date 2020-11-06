@@ -21,9 +21,9 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Name and assign input pins
-sig_input_1 = board.get_pin('d:5:i')
-sig_input_3 = board.get_pin('d:6:i')
-sig_input_5 = board.get_pin('d:7:i')
+sig_input_1 = board.get_pin('d:5:i') # sw = click
+sig_input_3 = board.get_pin('d:6:i') # dt = x
+sig_input_5 = board.get_pin('d:7:i') # clk = y
 sig_input_7 = board.get_pin('d:10:i') # Omron
 
 # Initial status of input pins
@@ -82,7 +82,7 @@ iRow = 0
 pre_buttonTime = buttonTime
 pre_clickTime = clickTime
 
-while currentTime - initialTime < 180: # Wait 10 sec
+while currentTime - initialTime < 30: # Wait 10 sec
     # Time
     currentTime = core.getTime()
 
@@ -118,10 +118,10 @@ while currentTime - initialTime < 180: # Wait 10 sec
 
     while trigger_wait == 1:
         # Read ports
-        sw_1 = sig_input_1.read()
-        sw_3 = sig_input_3.read()
-        sw_5 = sig_input_5.read()
-        sw_7 = sig_input_7.read()
+        sw_1 = sig_input_1.read() # sw = click
+        sw_3 = sig_input_3.read() # dt = x
+        sw_5 = sig_input_5.read() # clk = y
+        sw_7 = sig_input_7.read() # omron = button
 
         # Click status info
         click_stat = sw_1

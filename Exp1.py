@@ -16,7 +16,7 @@ from ARDTrigger import * # Response trigger
 
 
 # Prepare our Arduino board
-board = pyfirmata.Arduino('/dev/cu.usbmodem14201')
+board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
 
 it = pyfirmata.util.Iterator(board)
 it.start()
@@ -25,10 +25,10 @@ it.start()
 sig_input_jx = board.get_pin('a:1:i') # joystick - x
 sig_input_jy = board.get_pin('a:2:i') # joystick - y
 sig_input_jc = board.get_pin('d:3:i') # joystick - click
-sig_input_sw = board.get_pin('d:5:i') # dial - sw
-sig_input_dt = board.get_pin('d:6:i') # dial - dt
-sig_input_cl = board.get_pin('d:7:i') # dial - click
-sig_input_om = board.get_pin('d:10:i') # Omron
+sig_input_dc = board.get_pin('d:5:i') # dial - sw
+sig_input_dx = board.get_pin('d:6:i') # dial - dt
+sig_input_dy = board.get_pin('d:7:i') # dial - click
+sig_input_bt = board.get_pin('d:10:i') # Omron
 
 # Initial status of input pins
 
@@ -40,6 +40,9 @@ trigger = []
 pre_resp_status = []
 pre_click = []
 pre_button = []
+resp_key = []
+clue = []
+pre_key = []
 # Start !
 print('start!')
 
@@ -75,62 +78,166 @@ clickTime = core.getTime()
 buttonTime = core.getTime()
 iCol = 0
 iRow = 0
+nRow = 4
+nCol = 3
 pre_buttonTime = buttonTime
 pre_clickTime = clickTime
+stepToGoal = 0
+response = []
 
-while currentTime - initialTime < 20: # Wait 10 sec
-    # Time
+# while currentTime - initialTime < 20: # Wait 10 sec
+#     # Time
+#     currentTime = core.getTime()
+
+
+# Strat the experiment ---- 
+
+queNum = 0
+
+for trial in range(1):    
+    # Initial values for every trial
+    trialStatus = 1
+    iRow = 0
+    iCol = 0
+    reqCol = 0
+    # reqRow = random.randrange(1, nRow + 1)
+    reqRow = PseudoRandomRow[queNum]
+    stimuli_time = core.getTime()
     currentTime = core.getTime()
+    print(trial)
 
-    # Background OSD
-    for image in range(5):
-        img = visual.ImageStim(my_win,
-            image = imageLUT[image]['path'],
-            pos = imageLUT[image]['position'])
-        img.draw()
+    while trialStatus == 1:
+        # Background OSD
+        for image in range(5):
+            img = visual.ImageStim(my_win,
+                image = imageLUT[image]['path'],
+                pos = imageLUT[image]['position'])
+            img.draw()
 
-    # OSD strings
-    for image in range(4):
-        img = visual.ImageStim(my_win,
-            image = strLUT[image]['path'],
-            pos = strLUT[image]['position'])
-        img.draw()
+        # Request
+        request = visual.Rect(my_win,
+            width = requestLUT[reqCol]['width'],
+            height = requestLUT[reqCol]['height'],
+            lineWidth = 2,
+            fillColor = None,
+            lineColor = '#b58900',
+            pos= requestLUT[reqCol]['position'][reqRow], opacity = 1)
+        request.draw()
 
-    # Indicator
-    indicator = visual.Rect(my_win, 
-        width = indicatorLUT[iCol]['width'], 
-        height = indicatorLUT[iCol]['height'], 
-        fillColor = SOLARIZED['yellow'], fillColorSpace='rgb255', 
-        lineColor = SOLARIZED['yellow'], lineColorSpace ='rgb255', 
-        pos= indicatorLUT[iCol]['position'][iRow], opacity = 0.8)
+        # Indicator
+        indicator = visual.Rect(my_win, 
+            width = indicatorLUT[iCol]['width'], 
+            height = indicatorLUT[iCol]['height'], 
+            fillColor = SOLARIZED['cyan'], fillColorSpace='rgb255', 
+            lineColor = SOLARIZED['cyan'], lineColorSpace ='rgb255', 
+            pos= indicatorLUT[iCol]['position'][iRow], opacity = 0.5)
+        indicator.draw()
 
-    indicator.draw()
+        # OSD strings
+        for image in range(iCol+1):
+            img = visual.ImageStim(my_win,
+                image = strLUT[image]['path'],
+                pos = strLUT[image]['position'])
+            img.draw()
 
-    my_win.flip()
-    flipTime = core.getTime()
+        my_win.flip()
+
+        flipTime = core.getTime()
     # ===== End of drawing UI ====
 
     # ==== Wait for response ====
-    trigger_wait = 1
+        trigger_wait = 1
 
-    while trigger_wait == 1:
-        # Read ports
-        tg_jx = sig_input_jx.read()
-        tg_jy = sig_input_jy.read()
-        tg_jc = sig_input_jc.read()
-        tg_sw = sig_input_sw.read()
-        tg_dt = sig_input_dt.read()
-        tg_cl = sig_input_cl.read()
-        tg_om = sig_input_om.read()
+        '''
+        HW
+        '''
+        # hw_required = 'Dial'
+        hw_required = 'Joystick'
 
-        # Collect as a list
-        joystick = [tg_jx, tg_jy, tg_jc]
-        dial = [tg_sw, tg_dt, tg_cl, tg_om]
+        while trigger_wait == 1:
+            # Read ports of required hardware ==== 
+            if hw_required == 'Joystick':
+                joy_x = sig_input_jx.read()
+                joy_y = sig_input_jy.read()
+                joy_c = sig_input_jc.read()
+                # Get joystick function
+                resp_key, trigger_wait =  getJoystick(joy_x, joy_y, joy_c)
 
-        # Get response
-        # response_hw, response_key, response_status = getAnything(mouse, joy)
-        response_hw, response_key, response_status =  getPorts(joystick, dial)
+
+            elif hw_required == 'Dial':
+                dial_c = sig_input_dc.read()
+                dial_x = sig_input_dx.read()
+                dial_y = sig_input_dy.read()
+                dial_b = sig_input_bt.read()
+                # Get dial function
+                resp_key, resp_status, trigger_wait, trigger = getDial(dial_c, dial_x, dial_y, dial_b, 
+                                                                       pre_resp_status, trigger)
+                pre_resp_status = resp_status
+
+        '''
+        Already got trigger info
+        '''
+
+        if resp_key != pre_key:
+            currentTime = core.getTime()
+
+            # Check response ===== 
+            final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
+
+            # UI change followed response ==== 
+            iRow, iCol = determine_UI(hw_required, resp_key, iRow, iCol)
+
+            if resp_key != 'None':
+                print(resp_key, iRow, iCol)
+                response.append([
+                                reqRow, reqCol,
+                                resp_key, iRow, iCol, final_answer, stepToGoal,
+                                currentTime - stimuli_time, currentTime
+                                ])
+
+
+            if final_answer == 0:
+                stepToGoal += 1
+                if resp_key == 'Button':
+                    iRow = 0
+            elif final_answer == 1:
+                if resp_key == 'Click':
+                    # clue.append([reqCol, reqRow])
+                    reqCol += 1
+                    iRow = 0
+                    stepToGoal = 0
+                    if reqCol > nCol:
+                        trialStatus = 0
+                    # reqRow = random.randrange(1, nRow + 1)
+                    queNum += 1
+                    reqRow = PseudoRandomRow[queNum]
+                    # stimuli_time = core.getTime()
+
+        else:
+            pass
+
+        pre_key = resp_key
 
 
 # Close the window
 my_win.close()
+
+
+
+
+# Experiment record file
+os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI')
+# filename = ('%s_%s.txt' % (today, username))
+filename = ('TestRecord.txt')
+filecount = 0
+
+# while os.path.isfile(filename):
+#     filecount += 1
+#     filename = ('%s_%s_%d.txt' % (today, username, filecount))
+
+
+with open(filename, 'w') as filehandle: 
+    for key in response:
+        for item in key:
+            filehandle.writelines("%s " % item)
+        filehandle.writelines("\n")
