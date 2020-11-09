@@ -39,7 +39,7 @@ def getJoystick(joy_x, joy_y, joy_c):
     return resp_key, trigger_wait
 
 
-def getDial(click, x, y, button, pre_resp_status, trigger):
+def getDial(click, x, y, button, pre_resp_status, trigger, resp_status):
 
     trigger_wait = 1
     resp_key = 'None'
@@ -65,9 +65,11 @@ def getDial(click, x, y, button, pre_resp_status, trigger):
             if trigger[-1] - trigger[0] < 0:
                 resp_key = 'CW'
                 # log.append('Clockwise >>>')
+                print(resp_key)
             elif trigger[-1] - trigger[0] > 0:
                 resp_key = 'C_CW'
                 # log.append('<<< Counter-Clockwise')
+                print(resp_key)
             else:
                 pass
         else:
@@ -155,5 +157,63 @@ def determine_UI(hw_required, resp_key, iRow, iCol):
     return iRow, iCol
 
 
+# ========
+
+
+def getDial2(click, x, y, button, pre_resp_status, trigger):
+
+    trigger_wait = 1
+    resp_key = 'None'
+
+    # Click status info
+    if click == False:
+        resp_key = 'Click'
+        trigger_wait = 0
+    elif button == True:
+        resp_key = 'Button'
+        trigger_wait = 0
+    else:
+        pass
+
+    # Rotation position info
+    rotation_pos = [x, y] # rotation x,y
+    # Clockwise / counter-clockwise
+    if rotation_pos == [True, True]:
+        resp_status = 1
+        trigger_wait = 0
+        
+        if len(trigger) >= 2:
+            if trigger[-1] - trigger[0] < 0:
+                resp_key = 'CW'
+                # log.append('Clockwise >>>')
+            elif trigger[-1] - trigger[0] > 0:
+                resp_key = 'C_CW'
+                # log.append('<<< Counter-Clockwise')
+            else:
+                pass
+        else:
+            pass        
+
+        trigger = []
+
+    elif rotation_pos == [False, True]:
+        resp_status = 2
+        if resp_status != pre_resp_status:
+            trigger.append(resp_status)
+
+    elif rotation_pos == [False, False]:
+        resp_status = 3
+        if resp_status != pre_resp_status:
+            trigger.append(resp_status)
+
+    elif rotation_pos == [True, False]:
+        resp_status = 4
+        if resp_status != pre_resp_status:
+            trigger.append(resp_status)
+    else:
+        pass
+
+
+    return resp_key, resp_status, trigger_wait, trigger
 
 

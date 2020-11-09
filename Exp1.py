@@ -43,6 +43,7 @@ pre_button = []
 resp_key = []
 clue = []
 pre_key = []
+pre_port = []
 # Start !
 print('start!')
 
@@ -74,14 +75,12 @@ my_win = visual.Window(size = (880, 440), pos = (880,800),
 # Exp starts! =======
 initialTime = core.getTime()
 currentTime = core.getTime()
-clickTime = core.getTime()
-buttonTime = core.getTime()
+pre_pressTime = core.getTime()
 iCol = 0
 iRow = 0
 nRow = 4
 nCol = 3
-pre_buttonTime = buttonTime
-pre_clickTime = clickTime
+
 stepToGoal = 0
 response = []
 
@@ -104,7 +103,7 @@ for trial in range(1):
     reqRow = PseudoRandomRow[queNum]
     stimuli_time = core.getTime()
     currentTime = core.getTime()
-    print(trial)
+    # print(trial)
 
     while trialStatus == 1:
         # Background OSD
@@ -146,14 +145,12 @@ for trial in range(1):
     # ===== End of drawing UI ====
 
     # ==== Wait for response ====
-        trigger_wait = 1
-
         '''
         HW
         '''
-        # hw_required = 'Dial'
-        hw_required = 'Joystick'
-
+        hw_required = 'Dial'
+        # hw_required = 'Joystick'
+        trigger_wait = 1
         while trigger_wait == 1:
             # Read ports of required hardware ==== 
             if hw_required == 'Joystick':
@@ -163,60 +160,80 @@ for trial in range(1):
                 # Get joystick function
                 resp_key, trigger_wait =  getJoystick(joy_x, joy_y, joy_c)
 
-
             elif hw_required == 'Dial':
                 dial_c = sig_input_dc.read()
                 dial_x = sig_input_dx.read()
                 dial_y = sig_input_dy.read()
                 dial_b = sig_input_bt.read()
                 # Get dial function
-                resp_key, resp_status, trigger_wait, trigger = getDial(dial_c, dial_x, dial_y, dial_b, 
-                                                                       pre_resp_status, trigger)
+                resp_key, resp_status, trigger_wait, trigger = getDial(dial_c, dial_x, dial_y, dial_b,
+                                                                        pre_resp_status, trigger, resp_status)
                 pre_resp_status = resp_status
+                # print(trigger_wait)
+
+
+                if [dial_c, dial_x, dial_y, dial_b] != pre_port:
+                    currentTime = core.getTime()
+                    if currentTime - pre_pressTime > 0.01:
+                    # print(currentTime - pre_pressTime)
+                        # Check response ===== 
+                        final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
+
+                        # UI change followed response ==== 
+                        iRow, iCol = determine_UI(hw_required, resp_key, iRow, iCol)
+                        # Get action time
+                        pre_pressTime = currentTime
+                    else:
+                        trigger_wait = 0
+
+            pre_port = [dial_c, dial_x, dial_y, dial_b]
+            # pre_key = resp_key
+            
+
 
         '''
         Already got trigger info
-        '''
+        # '''
 
-        if resp_key != pre_key:
-            currentTime = core.getTime()
+        # # if resp_key != pre_key:
+        # currentTime = core.getTime()
 
-            # Check response ===== 
-            final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
+        # # Check response ===== 
+        # final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
 
-            # UI change followed response ==== 
-            iRow, iCol = determine_UI(hw_required, resp_key, iRow, iCol)
+        # # UI change followed response ==== 
+        # iRow, iCol = determine_UI(hw_required, resp_key, iRow, iCol)
 
-            if resp_key != 'None':
-                print(resp_key, iRow, iCol)
-                response.append([
-                                reqRow, reqCol,
-                                resp_key, iRow, iCol, final_answer, stepToGoal,
-                                currentTime - stimuli_time, currentTime
-                                ])
+        if resp_key != 'None':
+            # print(resp_key, iRow, iCol)
+            response.append([
+                            reqRow, reqCol,
+                            resp_key, iRow, iCol, final_answer, stepToGoal,
+                            currentTime - stimuli_time, currentTime
+                            ])
 
 
-            if final_answer == 0:
-                stepToGoal += 1
-                if resp_key == 'Button':
-                    iRow = 0
-            elif final_answer == 1:
-                if resp_key == 'Click':
-                    # clue.append([reqCol, reqRow])
-                    reqCol += 1
-                    iRow = 0
-                    stepToGoal = 0
-                    if reqCol > nCol:
-                        trialStatus = 0
-                    # reqRow = random.randrange(1, nRow + 1)
-                    queNum += 1
-                    reqRow = PseudoRandomRow[queNum]
-                    # stimuli_time = core.getTime()
+        if final_answer == 0:
+            stepToGoal += 1
+            if resp_key == 'Button':
+                iRow = 0
+        elif final_answer == 1:
+            if resp_key == 'Click':
+                # clue.append([reqCol, reqRow])
+                reqCol += 1
+                iRow = 0
+                stepToGoal = 0
+                if reqCol > nCol:
+                    trialStatus = 0
+                # reqRow = random.randrange(1, nRow + 1)
+                queNum += 1
+                reqRow = PseudoRandomRow[queNum]
+                # stimuli_time = core.getTime()
 
-        else:
-            pass
+    # else:
+    #     pass
 
-        pre_key = resp_key
+        
 
 
 # Close the window
@@ -241,3 +258,5 @@ with open(filename, 'w') as filehandle:
         for item in key:
             filehandle.writelines("%s " % item)
         filehandle.writelines("\n")
+
+

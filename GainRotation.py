@@ -10,14 +10,14 @@ import pyfirmata # Communicate with Arduino
 from psychopy import visual, event, core, monitors 
 
 # Prepare our Arduino board
-board = pyfirmata.Arduino('/dev/cu.usbmodem14201')
+board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
 
 it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Name and assign input pins
-sig_input_3 = board.get_pin('d:3:i')
-sig_input_5 = board.get_pin('d:5:i')
+sig_input_3 = board.get_pin('d:5:i')
+sig_input_5 = board.get_pin('d:6:i')
 sig_input_7 = board.get_pin('d:7:i')
 
 # Initial status of input pins

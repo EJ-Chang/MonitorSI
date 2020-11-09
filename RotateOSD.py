@@ -15,7 +15,7 @@ from GUI_Material import * # Prototype OSD GUI
 
 
 # Prepare our Arduino board
-board = pyfirmata.Arduino('/dev/cu.usbmodem14201')
+board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
 
 it = pyfirmata.util.Iterator(board)
 it.start()
@@ -166,8 +166,8 @@ while currentTime - initialTime < 30: # Wait 10 sec
         # Clockwise / counter-clockwise
         if rotation_pos == [True, True]:
             resp_status = 1
-            
             if len(trigger) >= 2:
+                print(trigger)
                 if trigger[-1] - trigger[0] < 0:
                     print('Clockwise >>>')
                     iRow += 1
