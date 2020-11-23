@@ -22,13 +22,13 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Name and assign input pins
-sig_input_jx = board.get_pin('a:1:i') # joystick - x
-sig_input_jy = board.get_pin('a:2:i') # joystick - y
-sig_input_jc = board.get_pin('d:3:i') # joystick - click
-sig_input_dc = board.get_pin('d:5:i') # dial - sw
-sig_input_dx = board.get_pin('d:6:i') # dial - dt
-sig_input_dy = board.get_pin('d:7:i') # dial - click
-sig_input_bt = board.get_pin('d:10:i') # Omron
+sig_input_jx = board.get_pin('a:3:i') # joystick - sx
+sig_input_jy = board.get_pin('a:5:i') # joystick - sy
+sig_input_jc = board.get_pin('d:8:i') # joystick - clk
+sig_input_dc = board.get_pin('d:12:i') # dial - sw
+sig_input_dx = board.get_pin('d:11:i') # dial - dt
+sig_input_dy = board.get_pin('d:10:i') # dial - clk
+sig_input_bt = board.get_pin('d:9:i') # Omron
 
 # Initial status of input pins
 
@@ -148,8 +148,8 @@ for trial in range(1):
         '''
         HW
         '''
-        hw_required = 'Dial'
-        # hw_required = 'Joystick'
+        # hw_required = 'Dial'
+        hw_required = 'Joystick'
         trigger_wait = 1
         while trigger_wait == 1:
             # Read ports of required hardware ==== 
@@ -159,6 +159,25 @@ for trial in range(1):
                 joy_c = sig_input_jc.read()
                 # Get joystick function
                 resp_key, trigger_wait =  getJoystick(joy_x, joy_y, joy_c)
+
+                # if [joy_x, joy_y, joy_c] != pre_port:
+                if resp_key != pre_key:
+                    currentTime = core.getTime()
+                    if currentTime - pre_pressTime > 0.01:
+                    # print(currentTime - pre_pressTime)
+                        # Check response ===== 
+                        final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
+
+                        # UI change followed response ==== 
+                        iRow, iCol = determine_UI(hw_required, resp_key, iRow, iCol)
+                        # Get action time
+                        pre_pressTime = currentTime
+                    else:
+                        trigger_wait = 0
+
+                # pre_port = [joy_x, joy_y, joy_c]
+                pre_key = resp_key
+
 
             elif hw_required == 'Dial':
                 dial_c = sig_input_dc.read()
@@ -186,7 +205,7 @@ for trial in range(1):
                     else:
                         trigger_wait = 0
 
-            pre_port = [dial_c, dial_x, dial_y, dial_b]
+                pre_port = [dial_c, dial_x, dial_y, dial_b]
             # pre_key = resp_key
             
 

@@ -7,7 +7,8 @@ Written by EJ_Chang
 
 import os, random, time 
 import pyfirmata # Communicate with Arduino
-from psychopy import visual, event, core, monitors 
+# from psychopy import visual, event, core, monitors 
+from psychopy import *
 
 # Prepare our Arduino board
 board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
@@ -16,9 +17,9 @@ it = pyfirmata.util.Iterator(board)
 it.start()
 
 # Name and assign input pins
-sig_input_3 = board.get_pin('d:5:i')
-sig_input_5 = board.get_pin('d:6:i')
-sig_input_7 = board.get_pin('d:7:i')
+sig_input_3 = board.get_pin('d:10:i')
+sig_input_5 = board.get_pin('d:11:i')
+sig_input_7 = board.get_pin('d:12:i')
 
 # Initial status of input pins
 pre_stat = []
