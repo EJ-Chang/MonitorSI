@@ -59,19 +59,18 @@ def getDial(click, x, y, button, pre_resp_status, trigger, resp_status):
     # Clockwise / counter-clockwise
     if rotation_pos == [True, True]:
         resp_status = 1
-        trigger_wait = 0
         
         if len(trigger) >= 2:
             if trigger[-1] - trigger[0] < 0:
                 resp_key = 'CW'
+                trigger_wait = 0
                 # log.append('Clockwise >>>')
-                print(resp_key)
+                # print(resp_key)
             elif trigger[-1] - trigger[0] > 0:
                 resp_key = 'C_CW'
+                trigger_wait = 0
                 # log.append('<<< Counter-Clockwise')
-                print(resp_key)
-            else:
-                pass
+                # print(resp_key)
         else:
             pass        
 
@@ -129,6 +128,10 @@ def determine_UI(hw_required, resp_key, iRow, iCol):
             iCol += 1 
             if iCol >= 3:
                 iCol = 3
+        elif resp_key == 'Click':
+            iCol += 1 
+            if iCol >= 3:
+                iCol =3
         else:
             pass
 

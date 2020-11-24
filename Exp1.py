@@ -80,7 +80,7 @@ iCol = 0
 iRow = 0
 nRow = 4
 nCol = 3
-
+final_answer = 0
 stepToGoal = 0
 response = []
 
@@ -148,8 +148,8 @@ for trial in range(1):
         '''
         HW
         '''
-        # hw_required = 'Dial'
-        hw_required = 'Joystick'
+        hw_required = 'Dial'
+        # hw_required = 'Joystick'
         trigger_wait = 1
         while trigger_wait == 1:
             # Read ports of required hardware ==== 
@@ -163,7 +163,7 @@ for trial in range(1):
                 # if [joy_x, joy_y, joy_c] != pre_port:
                 if resp_key != pre_key:
                     currentTime = core.getTime()
-                    if currentTime - pre_pressTime > 0.01:
+                    if currentTime - pre_pressTime > 0.5:
                     # print(currentTime - pre_pressTime)
                         # Check response ===== 
                         final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
@@ -177,6 +177,8 @@ for trial in range(1):
 
                 # pre_port = [joy_x, joy_y, joy_c]
                 pre_key = resp_key
+
+
 
 
             elif hw_required == 'Dial':
@@ -193,7 +195,7 @@ for trial in range(1):
 
                 if [dial_c, dial_x, dial_y, dial_b] != pre_port:
                     currentTime = core.getTime()
-                    if currentTime - pre_pressTime > 0.01:
+                    if currentTime - pre_pressTime > 0.1:
                     # print(currentTime - pre_pressTime)
                         # Check response ===== 
                         final_answer = response_check(resp_key, iRow, iCol, reqRow, reqCol)
@@ -247,7 +249,7 @@ for trial in range(1):
                 # reqRow = random.randrange(1, nRow + 1)
                 queNum += 1
                 reqRow = PseudoRandomRow[queNum]
-                # stimuli_time = core.getTime()
+                stimuli_time = core.getTime()
 
     # else:
     #     pass
