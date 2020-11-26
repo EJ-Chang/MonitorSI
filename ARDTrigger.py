@@ -65,12 +65,12 @@ def getDial(click, x, y, button, pre_resp_status, trigger, resp_status):
                 resp_key = 'CW'
                 trigger_wait = 0
                 # log.append('Clockwise >>>')
-                # print(resp_key)
+                print(resp_key)
             elif trigger[-1] - trigger[0] > 0:
                 resp_key = 'C_CW'
                 trigger_wait = 0
                 # log.append('<<< Counter-Clockwise')
-                # print(resp_key)
+                print(resp_key)
         else:
             pass        
 
@@ -163,7 +163,7 @@ def determine_UI(hw_required, resp_key, iRow, iCol):
 # ========
 
 
-def getDial2(click, x, y, button, pre_resp_status, trigger):
+def getDialRev(click, x, y, button, pre_resp_status, trigger, resp_status):
 
     trigger_wait = 1
     resp_key = 'None'
@@ -183,17 +183,18 @@ def getDial2(click, x, y, button, pre_resp_status, trigger):
     # Clockwise / counter-clockwise
     if rotation_pos == [True, True]:
         resp_status = 1
-        trigger_wait = 0
         
         if len(trigger) >= 2:
             if trigger[-1] - trigger[0] < 0:
-                resp_key = 'CW'
-                # log.append('Clockwise >>>')
-            elif trigger[-1] - trigger[0] > 0:
                 resp_key = 'C_CW'
+                trigger_wait = 0
+                # log.append('Clockwise >>>')
+                print(resp_key)
+            elif trigger[-1] - trigger[0] > 0:
+                resp_key = 'CW'
+                trigger_wait = 0
                 # log.append('<<< Counter-Clockwise')
-            else:
-                pass
+                print(resp_key)
         else:
             pass        
 
@@ -219,4 +220,32 @@ def getDial2(click, x, y, button, pre_resp_status, trigger):
 
     return resp_key, resp_status, trigger_wait, trigger
 
+def getJoystickRev(joy_x, joy_y, joy_c):
 
+    if [joy_x, joy_y, joy_c] == [True, True, True]:
+        trigger_wait = 1
+        resp_key = 'None'
+    else:
+        trigger_wait = 0
+        resp_key = 'None'
+        # Get trigger meaning
+        if joy_c == False:
+            resp_key = 'Click'
+
+        elif joy_c == True:
+            D1 = joy_y - joy_x
+            D2 = joy_y + joy_x - 1
+            O1 = (joy_x-0.5) ** 2 + (joy_y-0.5) ** 2 - 0.04 # r = 0.2
+            if O1 >= 0:
+                if D1 > 0 and D2 > 0:
+                    resp_key = 'Up'
+                elif D1 < 0 and D2 > 0:
+                    resp_key = 'Right'
+                elif D1 < 0 and D2 < 0:
+                    resp_key = 'Down'
+                elif D1 > 0 and D2 < 0:
+                    resp_key = 'Left'
+            else:
+                pass
+
+    return resp_key, trigger_wait
