@@ -5,13 +5,14 @@ Created on Mon May 11 2020
 Written by EJ_Chang
 """
 
-import os, random
-from psychopy import visual, event, core, monitors
-from psychopy.hardware import joystick
 from datetime import date
+from psychopy import visual, event, core, monitors
+import pyfirmata # Communicate with Arduino
 import numpy as np
 from StiGenerator import *
-from ResponseTrigger import *
+from Solarized import * # Solarized color palette
+from GUI_Material import * # Prototype OSD GUI
+from ARDTrigger import * # Response trigger
 
 # This is practice trial setting
 hw_required = ['Wheel','dPad']
@@ -26,15 +27,6 @@ scrn = 0 # 0 to use main screen, 1 to use external screen
 mon = monitors.Monitor(monitorname, width = monitorwidth, distance = viewdist)
 mon.setSizePix((widthPix, heightPix))
 mon.save()
-
-# Color Palette ----
-base03 = (0,43,54)
-base01 = (88,110,117)
-base0 = (131,148,150)
-yellow = (181,137,0)
-magenta = (211,54,130)
-cyan = (42,161,152)
-green = (133,153,0)
 
 # Directions ----
 dir_DictList= []
@@ -55,50 +47,42 @@ with open("dir_limit.txt") as f:
         dir_DictList.append(sti_Dict)
 
 # Preparing Window ----
-# my_win = visual.Window(size=(800, 800), pos=(880,1040), 
+my_win = visual.Window(size=(800, 800), pos=(880,1040), 
+                       color=SOLARIZED['base03'], colorSpace='rgb255', 
+                       monitor = mon, units = 'pix', 
+                       screen = 1)
+
+# my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
 #                        color=base03, colorSpace='rgb255', 
 #                        monitor = mon, units = 'pix', 
-#                        screen = 1)
-
-my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
-                       color=base03, colorSpace='rgb255', 
-                       monitor = mon, units = 'pix', 
-                       screen = 0, fullscr = 1)
+#                        screen = 0, fullscr = 1)
 
 
 
-# Preparing Joystick & Mouse ----
-# - Joysticks setting
-joystick.backend = 'pyglet'
-nJoys = joystick.getNumJoysticks() # Check if I have any joysticks
-id = 0 # I'll use the first one as input
-joy = joystick.Joystick(id) # ID has to be nJoys - 1
+# Preparing Arduino & Mouse ----
+
+# Prepare our Arduino board
+board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
+
+it = pyfirmata.util.Iterator(board)
+it.start()
+
+# Name and assign input pins
+sig_input_dc = board.get_pin('d:12:i') # dial - sw
+sig_input_dx = board.get_pin('d:11:i') # dial - dt
+sig_input_dy = board.get_pin('d:10:i') # dial - clk 
+sig_input_bt = board.get_pin('d:9:i') # Omron
 # - Mouse setting
 mouse = event.Mouse(visible = True, win = my_win)
 mouse.clickReset() # Reset to its initials
-
-# Preparing pics ----
-img_start = 'ACC_ImgFolder/Practice_Start.png'
-img_rest = 'ACC_ImgFolder/Practice_Rest.png'
-img_ty = 'ACC_ImgFolder/Practice_End.png'
-
-img_ins1 = 'ACC_ImgFolder/Practice_Ins1.png'
-img_ins2 = 'ACC_ImgFolder/Practice_Ins2.png'
-
-practice_ins = [img_ins1, img_ins2]
-
-instruction_dict = {
-    'Wheel': 'ACC_ImgFolder/acc1.png',
-    'dPad':  'ACC_ImgFolder/acc2.png'}
-
 
 
 # Setting Constants ----
 ORIGIN_POINT = (0,0)
 ORIGIN = visual.Circle(my_win, units =  'pix',
                        radius = 5, pos = ORIGIN_POINT,
-                       fillColor = base01, fillColorSpace = 'rgb255',
-                       lineColor = base01, lineColorSpace = 'rgb255', 
+                       fillColor = SOLARIZED['base01'], fillColorSpace = 'rgb255',
+                       lineColor = SOLARIZED['base01'], lineColorSpace = 'rgb255', 
                        interpolate = True)
 
 ARROW_WING1 = np.array([-10,10])
@@ -121,216 +105,182 @@ LINE_NONE = np.array([0,0])
 
 four_vector = [LINE_UP, LINE_DOWN, LINE_LEFT, LINE_RIGHT]
 four_dict = {'Up': LINE_UP,  'Down': LINE_DOWN,
-             'Left': LINE_LEFT, 'Right': LINE_RIGHT, 'NoMeaning': LINE_NONE}
-
+             'Left': LINE_LEFT, 'Right': LINE_RIGHT, 'None': LINE_NONE}
+# Set initial values
 response = []
+pre_stat = []
+log = []
+resp_status = 0
+trigger = []
+pre_resp_status = []
+pre_click = []
+pre_button = []
+resp_key = []
+clue = []
+pre_key = []
+pre_port = []
+hw_required = 'Dial'
+currentTime = core.getTime()
 # ===========================
 
-# Welcoming
-img = visual.ImageStim(win = my_win, image = img_start, 
-                       units = 'pix')
-img.draw()
-my_win.flip()
-core.wait(2)
-# Resting 
-rest = visual.ImageStim(win = my_win, image = img_rest, 
-                       units = 'pix')
 
-# Instruction
-for ins in range(2):
-    core.wait(0.5)
-    while 1:
-        img = visual.ImageStim(win = my_win, image = practice_ins[ins], 
-                                 units = 'pix')
-        img.draw()
+for nTrial in range(2):
+
+    # Get the ques
+    tag_que = [] 
+    line_pos = ORIGIN_POINT
+    sti_path = [ORIGIN_POINT, ORIGIN_POINT] 
+    thePath = pathGenerate(dir_DictList)
+
+    for ques in thePath:
+        ques = int(ques)
+        line_pos = line_pos + four_vector[ques]
+        sti_path.append(line_pos) # Coordinates
+        tag_que.append(dir_DictList[ques]['main_meaning'])
+
+    N_LINE = len(tag_que)
+
+    # Rotate along with the last line in this path
+    rotation_dict = {'Up':ROTATE_270, 'Down':ROTATE_90, 
+                     'Left':ROTATE_180, 'Right':ROTATE_0, 
+                     'None': ROTATE_NONE}
+
+
+    # =========================
+    #  Trial start !
+    # =========================
+    loopStatus = 1
+    iResp = 0
+    resp_path = [ORIGIN_POINT, ORIGIN_POINT]
+    key_meaning = 'None'
+    preAnswer_time = core.getTime()
+    while loopStatus == 1 :
+
+        '''
+        Stimuli routine
+        '''
+        # Origin point
+        ORIGIN.draw()
+
+        # Stimuli path
+        for iLine in range(N_LINE):
+
+            # Que path (stimuli) ----
+            stimuli_path = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
+                           lineColor = SOLARIZED['base01'], lineColorSpace = 'rgb255', 
+                           vertices = (sti_path[iLine+1], sti_path[iLine+2]),
+                           closeShape = False, pos = (0, 0))
+            stimuli_path.draw()
+
+        # End point
+        end = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
+              lineColor = SOLARIZED['base01'], lineColorSpace = 'rgb255', 
+              vertices = (sti_path[-1] + np.dot(ARROW_WING1, 
+                                                rotation_dict[tag_que[-1]]), 
+                          sti_path[-1], 
+                          sti_path[-1] + np.dot(ARROW_WING2, 
+                                                rotation_dict[tag_que[-1]])),
+              closeShape = False, pos = (0, 0))
+        end.draw()
+
+        # Response path 
+        for iResp in range(len(resp_path)-1):
+            response_path = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
+                            lineColor = SOLARIZED['green'], lineColorSpace = 'rgb255', 
+                            vertices = (sti_path[iResp], sti_path[iResp+1]),
+                            closeShape = False, pos = (0, 0))
+            response_path.draw()
+
+
+        # Indicator
+        indicator_pos = resp_path[iResp+1]
+        indicator_point = visual.Circle(my_win, units =  'pix',
+                          radius = 4, pos = (indicator_pos),
+                          fillColor = SOLARIZED['yellow'], fillColorSpace = 'rgb255',
+                          lineColor = SOLARIZED['yellow'], lineColorSpace = 'rgb255', 
+                          interpolate = True)
+        indicator_point.draw()
+
+
+        indicator_spine = indicator_pos + four_dict[key_meaning]
+
+        indicator_line = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3,
+                         lineColor = SOLARIZED['magenta'], lineColorSpace = 'rgb255',
+                         vertices = (indicator_pos, indicator_spine),
+                         closeShape = False, pos = (0,0))
+        indicator_line.draw()
+
+        indicator_arrow = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3,
+                          lineColor = SOLARIZED['magenta'], lineColorSpace = 'rgb255',
+                          vertices = (indicator_spine
+                                      + np.dot(MINI_WING1, 
+                                               rotation_dict[key_meaning]),
+                                      indicator_spine,
+                                      indicator_spine
+                                      + np.dot(MINI_WING2, 
+                                               rotation_dict[key_meaning])),
+                          closeShape = False, pos = (0,0))
+        # indicator_arrow.draw()
+
+        
+
+        # Flip the window
         my_win.flip()
+        trigger_wait = 1
+
+
+        '''
+        Response routine
+        '''
+
         # Get response 
-        response_hw, response_key, response_status = getAnything(mouse, joy)
-        if response_status == 1:
-            break
+        # response_hw, response_key, response_status = getAnything(mouse, joy)
+        while trigger_wait == 1:
+          # Read ports of required hardware ==== 
+          dial_c = sig_input_dc.read()
+          dial_x = sig_input_dx.read()
+          dial_y = sig_input_dy.read()
+          dial_b = sig_input_bt.read()
+          # Get dial function
+          resp_key, resp_status, trigger_wait, trigger = getDial(dial_c, dial_x, dial_y, dial_b, 
+                                                               pre_resp_status, trigger, resp_status)
+          key_meaning = interpret_key(hw_required, resp_key)
 
 
-# Make 2 blocks
-for block in range(2):
-    img = visual.ImageStim(win = my_win, image = instruction_dict[hw_required[block]], 
-                           units = 'pix')
-    img.draw()
-    my_win.flip()
+          if resp_key != pre_key:
+              currentTime = core.getTime()
+              # Check response =====
+              final_answer = reponse_check(key_meaning, tag_que[iResp])
+
+              if final_answer == 1:
+                  # key_meaning = 'None' # Reset key meaning
+                  resp_path.append(sti_path[iResp+2])
+                  iResp += 1
+                  if iResp >= N_LINE:
+                      iResp = N_LINE
+
+                      for iResp in range(len(resp_path)-1):
+                          response_path = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
+                                          lineColor = SOLARIZED['green'], lineColorSpace = 'rgb255', 
+                                          vertices = (sti_path[iResp], sti_path[iResp+1]),
+                                          closeShape = False, pos = (0, 0))
+                          response_path.draw()
+                      ORIGIN.draw()
+                      end.draw()
+                      my_win.flip()
+                      core.wait(0.5)
+                      loopStatus = 0
+                      # rest.draw()
+                      core.wait(2)
+
+
+          pre_key = resp_key # Button status update
+          # preAnswer_time = current_time # Time stampe update
+
+
     core.wait(2)
 
-    for nTrial in range(2):
 
-        # Get the ques
-        tag_que = [] 
-        line_pos = ORIGIN_POINT
-        sti_path = [ORIGIN_POINT, ORIGIN_POINT] 
-        thePath = pathGenerate(dir_DictList)
-
-        for ques in thePath:
-            ques = int(ques)
-            line_pos = line_pos + four_vector[ques]
-            sti_path.append(line_pos) # Coordinates
-            tag_que.append(dir_DictList[ques]['main_meaning'])
-
-        N_LINE = len(tag_que)
-
-        # Rotate along with the last line in this path
-        rotation_dict = {'Up':ROTATE_270, 'Down':ROTATE_90, 
-                         'Left':ROTATE_180, 'Right':ROTATE_0, 
-                         'NoMeaning': ROTATE_NONE}
-
-
-        # =========================
-        #  Trial start !
-        # =========================
-        loopStatus = 1
-        iResp = 0
-        resp_path = [ORIGIN_POINT, ORIGIN_POINT]
-        key_meaning = 'NoMeaning'
-        preAnswer_time = core.getTime()
-        while loopStatus == 1 :
-
-            '''
-            Stimuli routine
-            '''
-            # Origin point
-            ORIGIN.draw()
-
-            # Stimuli path
-            for iLine in range(N_LINE):
-
-                # Que path (stimuli) ----
-                stimuli_path = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
-                               lineColor = base01, lineColorSpace = 'rgb255', 
-                               vertices = (sti_path[iLine+1], sti_path[iLine+2]),
-                               closeShape = False, pos = (0, 0))
-                stimuli_path.draw()
-
-            # End point
-            end = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
-                  lineColor = base01, lineColorSpace = 'rgb255', 
-                  vertices = (sti_path[-1] + np.dot(ARROW_WING1, 
-                                                    rotation_dict[tag_que[-1]]), 
-                              sti_path[-1], 
-                              sti_path[-1] + np.dot(ARROW_WING2, 
-                                                    rotation_dict[tag_que[-1]])),
-                  closeShape = False, pos = (0, 0))
-            end.draw()
-
-            # Response path 
-            for iResp in range(len(resp_path)-1):
-                response_path = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
-                                lineColor = green, lineColorSpace = 'rgb255', 
-                                vertices = (sti_path[iResp], sti_path[iResp+1]),
-                                closeShape = False, pos = (0, 0))
-                response_path.draw()
-
-
-            # Indicator
-            indicator_pos = resp_path[iResp+1]
-            indicator_point = visual.Circle(my_win, units =  'pix',
-                              radius = 4, pos = (indicator_pos),
-                              fillColor = yellow, fillColorSpace = 'rgb255',
-                              lineColor = yellow, lineColorSpace = 'rgb255', 
-                              interpolate = True)
-            indicator_point.draw()
-
-
-            indicator_spine = indicator_pos + four_dict[key_meaning]
-
-            indicator_line = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3,
-                             lineColor = magenta, lineColorSpace = 'rgb255',
-                             vertices = (indicator_pos, indicator_spine),
-                             closeShape = False, pos = (0,0))
-            indicator_line.draw()
-
-            indicator_arrow = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3,
-                              lineColor = magenta, lineColorSpace = 'rgb255',
-                              vertices = (indicator_spine
-                                          + np.dot(MINI_WING1, 
-                                                   rotation_dict[key_meaning]),
-                                          indicator_spine,
-                                          indicator_spine
-                                          + np.dot(MINI_WING2, 
-                                                   rotation_dict[key_meaning])),
-                              closeShape = False, pos = (0,0))
-            # indicator_arrow.draw()
-
-            
-
-            # Flip the window
-            my_win.flip()
-
-
-            '''
-            Response routine
-            '''
-
-            # Get response 
-            response_hw, response_key, response_status = getAnything(mouse, joy)
-            
-            
-            # if response_status == 1 and response_key != pre_key:
-            if response_status == 1 and pre_status == 0:
-                # Get current time
-                # print(iResp, N_LINE)
-                current_time = core.getTime()
-                
-                key_meaning = interpret_key_ACC(response_hw, response_key) 
-                finalanswer = reponse_checker_ACC(response_hw, key_meaning, 
-                                                  hw_required[block], tag_que[iResp])
-                # Collect response (data)
-                response.append([hw_required[block], nTrial, iResp, 
-                    response_hw, response_key, key_meaning,
-                    tag_que[iResp], finalanswer,
-                    current_time - preAnswer_time, current_time
-                    ]) # correct/not, RT, real time
-
-                if finalanswer == 1:
-                    key_meaning = 'NoMeaning' # Reset key meaning
-                    resp_path.append(sti_path[iResp+2])
-                    iResp += 1
-                    if iResp >= N_LINE:
-                        iResp = N_LINE
-
-                        for iResp in range(len(resp_path)-1):
-                            response_path = visual.ShapeStim(my_win, units = 'pix', lineWidth = 3, 
-                                            lineColor = green, lineColorSpace = 'rgb255', 
-                                            vertices = (sti_path[iResp], sti_path[iResp+1]),
-                                            closeShape = False, pos = (0, 0))
-                            response_path.draw()
-                        ORIGIN.draw()
-                        end.draw()
-                        my_win.flip()
-                        core.wait(0.5)
-                        loopStatus = 0
-                        rest.draw()
-                        core.wait(2)
-
-
-                elif key_meaning == 'Abort':
-                    core.quit()
-
-                # print(key_meaning)
-                # print('resp_path length:', len(resp_path))
-                # print('iResp:', iResp)
-
-                pre_key = response_key # Button status update
-                preAnswer_time = current_time # Time stampe update
-
-            pre_status = response_status  
-        img = visual.ImageStim(win = my_win, image = img_rest, units = 'pix')
-        img.draw()
-        my_win.flip()
-        core.wait(2)
-
-
-# Thank u
-img = visual.ImageStim(win = my_win, image = img_ty, 
-                       units = 'pix')
-img.draw()
-my_win.flip()
-core.wait(2)
 
 # Close the window
 my_win.close()

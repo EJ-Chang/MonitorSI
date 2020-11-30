@@ -168,16 +168,6 @@ def getDialRev(click, x, y, button, pre_resp_status, trigger, resp_status):
     trigger_wait = 1
     resp_key = 'None'
 
-    # Click status info
-    if click == False:
-        resp_key = 'Click'
-        trigger_wait = 0
-    elif button == True:
-        resp_key = 'Button'
-        trigger_wait = 0
-    else:
-        pass
-
     # Rotation position info
     rotation_pos = [x, y] # rotation x,y
     # Clockwise / counter-clockwise
@@ -217,6 +207,15 @@ def getDialRev(click, x, y, button, pre_resp_status, trigger, resp_status):
     else:
         pass
 
+    # Click status info
+    if click == False:
+        resp_key = 'Click'
+        trigger_wait = 0
+    elif button == True:
+        resp_key = 'Button'
+        trigger_wait = 0
+    else:
+        pass
 
     return resp_key, resp_status, trigger_wait, trigger
 
@@ -249,3 +248,37 @@ def getJoystickRev(joy_x, joy_y, joy_c):
                 pass
 
     return resp_key, trigger_wait
+
+
+# Function : interpret ----
+def interpret_key(hw_required, resp_key):
+    key_meaning = 'None'
+    # Setting key map
+    if hw_required == 'Dial':
+        if resp_key == 'CW':
+            key_meaning = 'Down'
+        elif resp_key == 'C_CW':
+            key_meaning = 'Up'
+        elif resp_key == 'Click':
+            key_meaning = 'Right'
+        elif resp_key == 'Button':
+            key_meaning = 'Left'
+    # elif hw_required == 'Joystick':
+    else:
+        key_meaning = 'None'
+
+    return key_meaning
+
+
+
+
+# Function : match or not ----
+def reponse_check(key_meaning, key_required):
+
+    if key_meaning == key_required:
+        final_answer = 1
+
+    else:
+        final_answer = 0
+
+    return final_answer
