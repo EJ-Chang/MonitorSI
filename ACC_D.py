@@ -14,8 +14,15 @@ from Solarized import * # Solarized color palette
 from GUI_Material import * # Prototype OSD GUI
 from ARDTrigger import * # Response trigger
 
-# This is practice trial setting
-hw_required = ['Wheel','dPad']
+
+'''
+# Subject profile
+'''
+today = date.today()
+print('Today is %s:' % today)
+usernum = int(input('Please enter subject number:'))
+username = input("Please enter your name:").upper()
+print('Hi %s, welcome to our experiment!' % username)
 
 # Make screen profile ----
 widthPix = 2560 # screen width in px
@@ -124,7 +131,7 @@ currentTime = core.getTime()
 # ===========================
 
 
-for nTrial in range(2):
+for nTrial in range(2): # trial number
 
     # Get the ques
     tag_que = [] 
@@ -252,6 +259,13 @@ for nTrial in range(2):
               # Check response =====
               final_answer = reponse_check(key_meaning, tag_que[iResp])
 
+              # Collect response (data)
+              if key_meaning != 'None':
+                response.append([nTrial, iResp, resp_key, key_meaning,
+                    tag_que[iResp], final_answer,
+                    currentTime - preAnswer_time, currentTime
+                    ]) # correct/not, RT, real time
+
               if final_answer == 1:
                   # key_meaning = 'None' # Reset key meaning
                   resp_path.append(sti_path[iResp+2])
@@ -271,16 +285,35 @@ for nTrial in range(2):
                       core.wait(0.5)
                       loopStatus = 0
                       # rest.draw()
-                      core.wait(2)
+                      core.wait(1)
 
 
           pre_key = resp_key # Button status update
-          # preAnswer_time = current_time # Time stampe update
+          preAnswer_time = currentTime # Time stampe update
 
 
-    core.wait(2)
+    core.wait(1)
 
 
 
 # Close the window
 my_win.close()
+
+
+
+# Experiment record file
+os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/D_ACC')
+filename = ('%s_%s.txt' % (today, username))
+# filename = ('test.txt')
+filecount = 0
+
+while os.path.isfile(filename):
+    filecount += 1
+    filename = ('%s_%s_%d.txt' % (today, username, filecount))
+
+
+with open(filename, 'w') as filehandle: 
+    for key in response:
+        for item in key:
+            filehandle.writelines("%s " % item)
+        filehandle.writelines("\n")

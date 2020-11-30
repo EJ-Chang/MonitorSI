@@ -6,24 +6,29 @@ import pyfirmata # Communicate with Arduino
 from psychopy import visual, event, core, monitors 
 
 
-# Prepare our Arduino board
-board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
+# Preparing experiment stimulus
+# img_start = 'OSD_ImgFolder/start.png'
+# img_rest = 'OSD_ImgFolder/rest.png'
+# img_ty = 'OSD_ImgFolder/thanks.png'
+lineNumber = 1
+imageLUT = [] # list of image dictionary
+with open("directionArrows.txt") as f:
+    for line in f:
+        (number, mean, filepath) = line.split()
+        sti_Dict = {
+        'number': lineNumber,
+        'meaning': mean,
+        'path': filepath
+        }
+        lineNumber += 1
+        imageLUT.append(sti_Dict)
 
-it = pyfirmata.util.Iterator(board)
-it.start()
+# Randomizing the list
+nStimulus = len(imageLUT)  # nStimulus = 4
+playList = list(range(nStimulus)) * 10 # playList = [0,1,2,...nStimulus] repeats twice
+nTrials = len(playList)
+random.shuffle(playList) # Shuffle the playList
+stimulus_seq = tuple(playList) # Make it unchangable
 
-# Name and assign input pins
-sig_input_3 = board.get_pin('d:10:i')
-sig_input_5 = board.get_pin('d:11:i')
-sig_input_7 = board.get_pin('d:12:i')
-i = 1
 
-while i < 200:
-
-    # Collect input within a while loop
-    input_x = sig_input_3.read() # 
-    input_y = sig_input_5.read() # X
-    input_c = sig_input_7.read() # Y
-
-    # i += 1
-    print(input_x,input_y,input_c)
+print(len(stimulus_seq))

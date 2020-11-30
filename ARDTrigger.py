@@ -65,12 +65,12 @@ def getDial(click, x, y, button, pre_resp_status, trigger, resp_status):
                 resp_key = 'CW'
                 trigger_wait = 0
                 # log.append('Clockwise >>>')
-                print(resp_key)
+                # print(resp_key)
             elif trigger[-1] - trigger[0] > 0:
                 resp_key = 'C_CW'
                 trigger_wait = 0
                 # log.append('<<< Counter-Clockwise')
-                print(resp_key)
+                # print(resp_key)
         else:
             pass        
 
