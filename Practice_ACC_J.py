@@ -15,15 +15,6 @@ from GUI_Material import * # Prototype OSD GUI
 from ARDTrigger import * # Response trigger
 
 
-'''
-# Subject profile
-'''
-today = date.today()
-print('Today is %s:' % today)
-usernum = int(input('Please enter subject number:'))
-username = input("Please enter your name:").upper()
-print('Hi %s, welcome to our experiment!' % username)
-
 # Make screen profile ----
 widthPix = 2560 # screen width in px
 heightPix = 1440 # screen height in px
@@ -58,12 +49,13 @@ with open("dir_limit.txt") as f:
 #                        color=SOLARIZED['base03'], colorSpace='rgb255', 
 #                        monitor = mon, units = 'pix', 
 #                        screen = 1)
-my_win = visual.Window(size=(2560, 1440), pos=(0,0), monitor = mon, units = 'pix', 
-                       screen = 0, fullscr = 1)
-# my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
-#                        color=base03, colorSpace='rgb255', 
-#                        monitor = mon, units = 'pix', 
+
+# my_win = visual.Window(size=(2560, 1440), pos=(0,0), monitor = mon, units = 'pix', 
 #                        screen = 0, fullscr = 1)
+my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
+                       color=base03, colorSpace='rgb255', 
+                       monitor = mon, units = 'pix', 
+                       screen = 0, fullscr = 1)
 
 
 
@@ -84,6 +76,12 @@ sig_input_jc = board.get_pin('d:8:i') # joystick - clk
 mouse = event.Mouse(visible = True, win = my_win)
 mouse.clickReset() # Reset to its initials
 
+# Preparing pics ----
+img_start = 'Img/Practice_Start.png'
+img_ty = 'Img/Practice_End.png'
+
+img_ins1 = 'Img/Practice_Ins1.png'
+img_ins2 = 'Img/Practice_Ins2.png'
 
 # Setting Constants ----
 ORIGIN_POINT = (0,0)
@@ -131,8 +129,25 @@ hw_required = 'Joystick'
 currentTime = core.getTime()
 # ===========================
 
+# Start experiment ----
+# Instruction
 
-for nTrial in range(2): # trial number
+while 1:
+    img = visual.ImageStim(my_win, image = img_ins1)
+    img.draw()
+    my_win.flip()
+    clicks = mouse.getPressed()
+    if clicks != [0, 0, 0]:
+        break
+while 1:
+    img = visual.ImageStim(my_win, image = img_ins2)
+    img.draw()
+    my_win.flip()
+    clicks = mouse.getPressed()
+    if clicks != [0, 0, 0]:
+        break
+
+for nTrial in range(1): # trial number
 
     # Get the ques
     tag_que = [] 
@@ -244,16 +259,16 @@ for nTrial in range(2): # trial number
         # Get response 
         # response_hw, response_key, response_status = getAnything(mouse, joy)
         while trigger_wait == 1:
-          # Read ports of required hardware ==== 
-          joy_x = sig_input_jx.read()
-          joy_y = sig_input_jy.read()
-          joy_c = sig_input_jc.read()
-          # Get joystick function
-          resp_key, trigger_wait =  getJoystick(joy_x, joy_y, joy_c)
-          key_meaning = interpret_key(hw_required, resp_key)
+            # Read ports of required hardware ==== 
+            joy_x = sig_input_jx.read()
+            joy_y = sig_input_jy.read()
+            joy_c = sig_input_jc.read()
+            # Get joystick function
+            resp_key, trigger_wait =  getJoystick(joy_x, joy_y, joy_c)
+            key_meaning = interpret_key(hw_required, resp_key)
 
 
-          if resp_key != pre_key:
+            if resp_key != pre_key:
               currentTime = core.getTime()
               # Check response =====
               final_answer = reponse_check(key_meaning, tag_que[iResp])
@@ -287,8 +302,8 @@ for nTrial in range(2): # trial number
                       core.wait(1)
 
 
-          pre_key = resp_key # Button status update
-          preAnswer_time = currentTime # Time stampe update
+            pre_key = resp_key # Button status update
+            preAnswer_time = currentTime # Time stampe update
 
 
     core.wait(1)
@@ -297,22 +312,3 @@ for nTrial in range(2): # trial number
 
 # Close the window
 my_win.close()
-
-
-
-# Experiment record file
-os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/D_ACC')
-filename = ('%s_%s.txt' % (today, username))
-# filename = ('test.txt')
-filecount = 0
-
-while os.path.isfile(filename):
-    filecount += 1
-    filename = ('%s_%s_%d.txt' % (today, username, filecount))
-
-
-with open(filename, 'w') as filehandle: 
-    for key in response:
-        for item in key:
-            filehandle.writelines("%s " % item)
-        filehandle.writelines("\n")

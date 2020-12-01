@@ -11,12 +11,7 @@ from psychopy import visual, event, core, monitors
 from datetime import date
 from ARDTrigger import * # Response trigger
 
-# Subject profile
-today = date.today()
-print('Today is %s:' % today)
-usernum = int(input('Please enter subject number:'))
-username = input("Please enter your name:").upper()
-print('Hi %s, welcome to our experiment!' % username)
+
 
 # Make screen profile ----
 widthPix = 2560 # screen width in px
@@ -46,6 +41,7 @@ board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
 it = pyfirmata.util.Iterator(board)
 it.start()
 
+
 # Name and assign input pins
 sig_input_jx = board.get_pin('a:3:i') # joystick - sx
 sig_input_jy = board.get_pin('a:5:i') # joystick - sy
@@ -57,10 +53,10 @@ mouse.clickReset() # Reset to its initials
 
 
 # Preparing experiment stimulus
-img_start = 'Img/start.png'
+img_start = 'Img/Practice_Start.png'
 img_rest = 'Img/rest.png'
-img_ty = 'Img/thanks.png'
-img_ins = 'Img/RT_instruction.png'
+img_ty = 'Img/Practice_End.png'
+img_ins = 'Img/RT_instruction_J.png'
 lineNumber = 1
 imageLUT = [] # list of image dictionary
 with open("directionArrows.txt") as f:
@@ -108,7 +104,15 @@ final_anser = 0
 preAnswer_time = current_time
 
 # Start experiment ----
+# Instruction
 
+while 1:
+    img = visual.ImageStim(my_win, image = img_ins)
+    img.draw()
+    my_win.flip()
+    clicks = mouse.getPressed()
+    if clicks != [0, 0, 0]:
+        break
 # Greeting page
 img = visual.ImageStim(win = my_win, image = img_start, 
                        units = 'pix')
@@ -117,7 +121,7 @@ my_win.flip()
 core.wait(2)
 
 # Trials
-for item in range(40): # should be 40
+for item in range(10): # should be 40
 
 
     trialStatus = 1
@@ -133,16 +137,13 @@ for item in range(40): # should be 40
         trigger_wait = 1
         # Get response
         while trigger_wait == 1:
-
-            # Read ports of required hardware ==== 
+        # Read ports of required hardware ==== 
             joy_x = sig_input_jx.read()
             joy_y = sig_input_jy.read()
             joy_c = sig_input_jc.read()
             # Get joystick function
             resp_key, trigger_wait =  getJoystick(joy_x, joy_y, joy_c)
-
             key_meaning = interpret_key(hw_required, resp_key)
-
 
             if resp_key != pre_key:
                 current_time = core.getTime()
@@ -153,22 +154,6 @@ for item in range(40): # should be 40
                         trialStatus = 0
                     else:
                         final_anser = 0
-
-                    # Determine response key & time
-                    if key_meaning != 'None':
-                        response.append([stimulus_seq[item], 
-                                        key_meaning,
-                                        imageLUT[stimulus_seq[item]]['meaning'],
-                                        final_anser,
-                                        current_time -  stimuli_time,
-                                        current_time
-                                        ]) # correct/not, RT, real time
-
-                    # item += 1
-                    # trialStatus = 0
-                    
-
-                
 
             pre_key = resp_key # Button status update
             preAnswer_time = current_time
@@ -191,23 +176,3 @@ my_win.flip()
 core.wait(2)
 # Close window
 my_win.close()
-
-
-# Exp END ----
-# print('Get your responses:', response)
-
-# Experiment record file
-os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/J_RT')
-filename = ('%s_%s.txt' % (today, username))
-filecount = 0
-
-while os.path.isfile(filename):
-    filecount += 1
-    filename = ('%s_%s_%d.txt' % (today, username, filecount))
-
-
-with open(filename, 'w') as filehandle: 
-    for key in response:
-        for item in key:
-            filehandle.writelines("%s " % item)
-        filehandle.writelines("\n")

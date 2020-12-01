@@ -16,6 +16,18 @@ from Solarized import * # Solarized color palette
 from GUI_Material import * # Prototype OSD GUI
 from ARDTrigger import * # Response trigger
 
+
+'''
+# Subject profile
+'''
+today = date.today()
+print('Today is %s:' % today)
+usernum = int(input('Please enter subject number:'))
+username = input("Please enter your name:").upper()
+print('Hi %s, welcome to our experiment!' % username)
+
+
+
 # Prepare our Arduino board
 board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
 
@@ -94,31 +106,21 @@ mouse.clickReset() # Reset to its initials
 '''
 Instruction
 '''
-IMG_START = 'Img/Practice_Start.png'
-IMG_THX = 'Img/Practice_End.png'
-
-IMG_INSTRUCTION = 'Img/HSIinstruction.png'
-
-while 1:
-    img = visual.ImageStim(my_win, image = IMG_INSTRUCTION)
-    img.draw()
-    my_win.flip()
-    clicks = mouse.getPressed()
-    if clicks != [0, 0, 0]:
-        break
+IMG_START = 'Img/start.png'
+IMG_THX = 'Img/thanks.png'
 
 
 img = visual.ImageStim(my_win, image = IMG_START)
 img.draw()
 my_win.flip()
-core.wait(3)
+core.wait(5)
 
 
 # Strat the experiment ---- 
 
 queNum = 0
 
-for trial in range(1):    
+for trial in range(10):    
     # Initial values for every trial
     trialStatus = 1
     iRow = 0
@@ -222,7 +224,7 @@ for trial in range(1):
 
                     if final_answer == 0:
                         stepToGoal += 1
-                        # print(resp_key)
+                        print(resp_key)
                         if resp_key == 'Button':
                             iRow = 0
                     elif final_answer == 1:
@@ -251,5 +253,22 @@ core.wait(3)
 # Close the window
 my_win.close()
 
+
+
+# Experiment record file
+os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/D_1')
+filename = ('%s_%s.txt' % (today, username))
+filecount = 0
+
+while os.path.isfile(filename):
+    filecount += 1
+    filename = ('%s_%s_%d.txt' % (today, username, filecount))
+
+
+with open(filename, 'w') as filehandle: 
+    for key in response:
+        for item in key:
+            filehandle.writelines("%s " % item)
+        filehandle.writelines("\n")
 
         

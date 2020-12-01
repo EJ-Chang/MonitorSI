@@ -131,7 +131,7 @@ currentTime = core.getTime()
 # ===========================
 
 
-for nTrial in range(2): # trial number
+for nTrial in range(10): # trial number
 
     # Get the ques
     tag_que = [] 

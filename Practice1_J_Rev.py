@@ -116,7 +116,7 @@ core.wait(3)
 
 queNum = 0
 
-for trial in range(2):    
+for trial in range(1):    
     # Initial values for every trial
     trialStatus = 1
     iRow = 0
@@ -218,7 +218,7 @@ for trial in range(2):
 
                     if final_answer == 0:
                         stepToGoal += 1
-                        print(resp_key)
+                        # print(resp_key)
                         if resp_key == 'Button':
                             iRow = 0
                     elif final_answer == 1:

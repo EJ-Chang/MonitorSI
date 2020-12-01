@@ -16,19 +16,30 @@ from Solarized import * # Solarized color palette
 from GUI_Material import * # Prototype OSD GUI
 from ARDTrigger import * # Response trigger
 
+
+
+'''
+# Subject profile
+'''
+today = date.today()
+print('Today is %s:' % today)
+usernum = int(input('Please enter subject number:'))
+username = input("Please enter your name:").upper()
+print('Hi %s, welcome to our experiment!' % username)
+
+
+
 # Prepare our Arduino board
 board = pyfirmata.Arduino('/dev/cu.usbmodem14101')
 
 it = pyfirmata.util.Iterator(board)
 it.start()
 
-# Name and assign input pins
-sig_input_dc = board.get_pin('d:12:i') # dial - sw
-sig_input_dx = board.get_pin('d:11:i') # dial - dt
-sig_input_dy = board.get_pin('d:10:i') # dial - clk 
-sig_input_bt = board.get_pin('d:9:i') # Omron
 
-# Initial status of input pins
+# Name and assign input pins
+sig_input_jx = board.get_pin('a:3:i') # joystick - sx
+sig_input_jy = board.get_pin('a:5:i') # joystick - sy
+sig_input_jc = board.get_pin('d:8:i') # joystick - clk
 
 # Set initial values
 pre_stat = []
@@ -94,18 +105,8 @@ mouse.clickReset() # Reset to its initials
 '''
 Instruction
 '''
-IMG_START = 'Img/Practice_Start.png'
-IMG_THX = 'Img/Practice_End.png'
-
-IMG_INSTRUCTION = 'Img/HSIinstruction.png'
-
-while 1:
-    img = visual.ImageStim(my_win, image = IMG_INSTRUCTION)
-    img.draw()
-    my_win.flip()
-    clicks = mouse.getPressed()
-    if clicks != [0, 0, 0]:
-        break
+IMG_START = 'Img/start.png'
+IMG_THX = 'Img/thanks.png'
 
 
 img = visual.ImageStim(my_win, image = IMG_START)
@@ -118,7 +119,7 @@ core.wait(3)
 
 queNum = 0
 
-for trial in range(1):    
+for trial in range(10):    
     # Initial values for every trial
     trialStatus = 1
     iRow = 0
@@ -190,19 +191,17 @@ for trial in range(1):
         HW
         '''
 
-        hw_required = 'Dial'
+        hw_required = 'Joystick'
         trigger_wait = 1
 
         while trigger_wait == 1:
             # Read ports of required hardware ==== 
-            dial_c = sig_input_dc.read()
-            dial_x = sig_input_dx.read()
-            dial_y = sig_input_dy.read()
-            dial_b = sig_input_bt.read()
-            # Get dial function
-            resp_key, resp_status, trigger_wait, trigger = getDialRev(dial_c, dial_x, dial_y, dial_b, 
-                                                                   pre_resp_status, trigger, resp_status)
-            # print(resp_key)
+            joy_x = sig_input_jx.read()
+            joy_y = sig_input_jy.read()
+            joy_c = sig_input_jc.read()
+            # Get joystick function
+            resp_key, trigger_wait =  getJoystickRev(joy_x, joy_y, joy_c)
+
 
             if resp_key != pre_key:
                 currentTime = core.getTime()
@@ -222,7 +221,7 @@ for trial in range(1):
 
                     if final_answer == 0:
                         stepToGoal += 1
-                        # print(resp_key)
+                        print(resp_key)
                         if resp_key == 'Button':
                             iRow = 0
                     elif final_answer == 1:
@@ -253,3 +252,22 @@ my_win.close()
 
 
         
+
+# Experiment record file
+os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/J_1')
+filename = ('%s_%s.txt' % (today, username))
+filecount = 0
+
+while os.path.isfile(filename):
+    filecount += 1
+    filename = ('%s_%s_%d.txt' % (today, username, filecount))
+
+
+with open(filename, 'w') as filehandle: 
+    for key in response:
+        for item in key:
+            filehandle.writelines("%s " % item)
+        filehandle.writelines("\n")
+
+        
+ㄇ

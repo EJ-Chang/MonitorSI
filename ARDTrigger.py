@@ -179,12 +179,12 @@ def getDialRev(click, x, y, button, pre_resp_status, trigger, resp_status):
                 resp_key = 'C_CW'
                 trigger_wait = 0
                 # log.append('Clockwise >>>')
-                print(resp_key)
+                # print(resp_key)
             elif trigger[-1] - trigger[0] > 0:
                 resp_key = 'CW'
                 trigger_wait = 0
                 # log.append('<<< Counter-Clockwise')
-                print(resp_key)
+                # print(resp_key)
         else:
             pass        
 
@@ -263,7 +263,9 @@ def interpret_key(hw_required, resp_key):
             key_meaning = 'Right'
         elif resp_key == 'Button':
             key_meaning = 'Left'
-    # elif hw_required == 'Joystick':
+    elif hw_required == 'Joystick':
+        key_meaning = resp_key
+
     else:
         key_meaning = 'None'
 
