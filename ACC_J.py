@@ -302,7 +302,7 @@ my_win.close()
 
 
 # Experiment record file
-os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/D_ACC')
+os.chdir('/Users/YJC/Dropbox/ExpRecord_HSI/J_ACC')
 filename = ('%s_%s.txt' % (today, username))
 # filename = ('test.txt')
 filecount = 0
