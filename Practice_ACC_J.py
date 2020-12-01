@@ -52,11 +52,15 @@ with open("dir_limit.txt") as f:
 
 # my_win = visual.Window(size=(2560, 1440), pos=(0,0), monitor = mon, units = 'pix', 
 #                        screen = 0, fullscr = 1)
+# my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
+#                        color=base03, colorSpace='rgb255', 
+#                        monitor = mon, units = 'pix', 
+#                        screen = 0, fullscr = 1)
+
 my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
-                       color=base03, colorSpace='rgb255', 
+                       color=SOLARIZED['base03'], colorSpace='rgb255', 
                        monitor = mon, units = 'pix', 
                        screen = 0, fullscr = 1)
-
 
 
 # Preparing Arduino & Mouse ----
@@ -139,6 +143,7 @@ while 1:
     clicks = mouse.getPressed()
     if clicks != [0, 0, 0]:
         break
+core.wait(1)
 while 1:
     img = visual.ImageStim(my_win, image = img_ins2)
     img.draw()

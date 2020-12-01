@@ -54,16 +54,15 @@ with open("dir_limit.txt") as f:
         dir_DictList.append(sti_Dict)
 
 # Preparing Window ----
-my_win = visual.Window(size=(800, 800), pos=(880,1040), 
+# my_win = visual.Window(size=(800, 800), pos=(880,1040), 
+#                        color=SOLARIZED['base03'], colorSpace='rgb255', 
+#                        monitor = mon, units = 'pix', 
+#                        screen = 1)
+
+my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
                        color=SOLARIZED['base03'], colorSpace='rgb255', 
                        monitor = mon, units = 'pix', 
-                       screen = 1)
-
-# my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
-#                        color=base03, colorSpace='rgb255', 
-#                        monitor = mon, units = 'pix', 
-#                        screen = 0, fullscr = 1)
-
+                       screen = 0, fullscr = 1)
 
 
 # Preparing Arduino & Mouse ----

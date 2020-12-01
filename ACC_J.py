@@ -58,12 +58,13 @@ with open("dir_limit.txt") as f:
 #                        color=SOLARIZED['base03'], colorSpace='rgb255', 
 #                        monitor = mon, units = 'pix', 
 #                        screen = 1)
-my_win = visual.Window(size=(2560, 1440), pos=(0,0), monitor = mon, units = 'pix', 
+
+
+my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
+                       color=SOLARIZED['base03'], colorSpace='rgb255', 
+                       monitor = mon, units = 'pix', 
                        screen = 0, fullscr = 1)
-# my_win = visual.Window(size=(2560, 1440), pos=(0,0), 
-#                        color=base03, colorSpace='rgb255', 
-#                        monitor = mon, units = 'pix', 
-#                        screen = 0, fullscr = 1)
+
 
 
 
@@ -132,7 +133,7 @@ currentTime = core.getTime()
 # ===========================
 
 
-for nTrial in range(2): # trial number
+for nTrial in range(10): # trial number
 
     # Get the ques
     tag_que = [] 
