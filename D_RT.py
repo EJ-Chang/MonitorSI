@@ -117,7 +117,7 @@ my_win.flip()
 core.wait(2)
 
 # Trials
-for item in range(40): # should be 40
+for item in range(4): # should be 40
 
 
     trialStatus = 1
@@ -129,6 +129,7 @@ for item in range(40): # should be 40
         img.draw()
         my_win.flip()
         stimuli_time =core.getTime()
+        print('trial_loop ', stimuli_time)
 
         trigger_wait = 1
         # Get response
@@ -148,6 +149,7 @@ for item in range(40): # should be 40
 
             if resp_key != pre_key:
                 current_time = core.getTime()
+                print('response_loop ', current_time)
                 if current_time - preAnswer_time > 0.1:
 
                     if key_meaning == imageLUT[stimulus_seq[item]]['meaning']:
@@ -165,6 +167,7 @@ for item in range(40): # should be 40
                                         current_time -  stimuli_time,
                                         current_time
                                         ]) # correct/not, RT, real time
+                        print('RT ', current_time - stimuli_time)
 
                     # item += 1
                     # trialStatus = 0

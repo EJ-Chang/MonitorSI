@@ -8,35 +8,70 @@ Written by EJ_Chang
 from psychopy import visual, event, core, monitors
 
 
+# def getJoystick(joy_x, joy_y, joy_c):
+#     print(joy_x, joy_y, joy_c)
+
+#     if [joy_x, joy_y, joy_c] == [True, True, True]: # WRONGG!!!!!! first 2 digits are numbers not boolean
+#         trigger_wait = 1
+#         resp_key = 'None'
+#     else:
+#         trigger_wait = 0 
+#         resp_key = 'None'
+#         # Get trigger meaning
+#         if joy_c == False:
+#             resp_key = 'Click'
+
+#         elif joy_c == True:
+#             D1 = joy_y - joy_x
+#             D2 = joy_y + joy_x - 1
+#             O1 = (joy_x-0.5) ** 2 + (joy_y-0.5) ** 2 - 0.04 # r = 0.2
+#             if O1 >= 0:
+#                 if D1 > 0 and D2 > 0:
+#                     resp_key = 'Up'
+#                 elif D1 < 0 and D2 > 0:
+#                     resp_key = 'Left'
+#                 elif D1 < 0 and D2 < 0:
+#                     resp_key = 'Down'
+#                 elif D1 > 0 and D2 < 0:
+#                     resp_key = 'Right'
+#             else:
+#                 pass
+
+#     return resp_key, trigger_wait
+
+
+
 def getJoystick(joy_x, joy_y, joy_c):
+    # print(joy_x, joy_y, joy_c)
+    trigger_wait = 1
+    resp_key = 'None'
 
-    if [joy_x, joy_y, joy_c] == [True, True, True]:
-        trigger_wait = 1
-        resp_key = 'None'
-    else:
+    # Get trigger meaning
+    if joy_c == False:
+        resp_key = 'Click'
         trigger_wait = 0
-        resp_key = 'None'
-        # Get trigger meaning
-        if joy_c == False:
-            resp_key = 'Click'
 
-        elif joy_c == True:
-            D1 = joy_y - joy_x
-            D2 = joy_y + joy_x - 1
-            O1 = (joy_x-0.5) ** 2 + (joy_y-0.5) ** 2 - 0.04 # r = 0.2
-            if O1 >= 0:
-                if D1 > 0 and D2 > 0:
-                    resp_key = 'Up'
-                elif D1 < 0 and D2 > 0:
-                    resp_key = 'Left'
-                elif D1 < 0 and D2 < 0:
-                    resp_key = 'Down'
-                elif D1 > 0 and D2 < 0:
-                    resp_key = 'Right'
-            else:
-                pass
+    elif joy_c == True:
+        D1 = joy_y - joy_x
+        D2 = joy_y + joy_x - 1
+        O1 = (joy_x-0.5) ** 2 + (joy_y-0.5) ** 2 - 0.04 # r = 0.2
+        if O1 >= 0:
+            trigger_wait = 0
+            if D1 > 0 and D2 > 0:
+                resp_key = 'Up'
+            elif D1 < 0 and D2 > 0:
+                resp_key = 'Left'
+            elif D1 < 0 and D2 < 0:
+                resp_key = 'Down'
+            elif D1 > 0 and D2 < 0:
+                resp_key = 'Right'
+        else:
+            trigger_wait = 1
+            resp_key = 'None'
+            
 
     return resp_key, trigger_wait
+
 
 
 def getDial(click, x, y, button, pre_resp_status, trigger, resp_status):
